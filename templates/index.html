@@ -1,49 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>TripMate AI</title>
-
+    <title>TripBuddy AI</title>
+    <meta name="description"
+        content="TripBuddy AI — a premium multi-agent travel planning interface powered by LangGraph, MCP, and human review.">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
+    <div class="page-bg" aria-hidden="true"></div>
 
-    <div class="page-bg">
-        <div class="gradient-circle circle-1"></div>
-        <div class="gradient-circle circle-2"></div>
-        <div class="gradient-circle circle-3"></div>
-    </div>
-
-    <main class="app-container">
-
-        <section class="hero-section">
-            <div class="badge">
-                ✈️ TripMate AI — A Multi-Agent Travel Planner with LangGraph
+    <header class="site-header">
+        <div class="nav-shell">
+            <div class="brand-wrap">
+                <div class="brand-mark">✈</div>
+                <span class="brand-name">TripBuddy AI</span>
             </div>
 
-            <h1>
-                Plan Your Perfect Trip with AI
-            </h1>
+            <nav class="main-nav" aria-label="Main navigation">
+                <a href="#top">Home</a>
+                <a href="#planner">Plan a Trip</a>
+                <a href="#workflowSection">AI Workflow</a>
+                <a href="#resultSection">Trip Result</a>
+            </nav>
 
+            <a class="nav-cta" href="#planner">Start Planning</a>
+
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-container" id="top">
+        <section class="hero-section">
+            <div class="badge">LangGraph · MCP · Multi-Agent AI · HITL</div>
+            <h1>
+                PLAN YOUR NEXT<br>
+                JOURNEY.<br>
+                WITH AI.
+            </h1>
             <p>
-                Search flights, discover hotels, and generate a complete travel itinerary using a multi-agent LangGraph system.
+                A premium travel-planning interface for flights, hotels, weather, budgeting, and review-ready
+                itineraries.
             </p>
+            <div class="hero-actions">
+                <a class="primary-button" href="#planner">Start Planning →</a>
+            </div>
         </section>
 
-        <section class="planner-card">
+        <section class="ai-team-section" aria-label="AI travel team overview">
+            <div class="section-heading">
+                <span class="eyebrow">AI Travel Team</span>
+                <h2>Specialized agents working as one trip planner.</h2>
+            </div>
 
+            <div class="team-rail" aria-hidden="true">
+                <div class="team-node supervisor-node">
+                    <span class="node-icon">◎</span>
+                    <span>Supervisor</span>
+                </div>
+                <div class="team-flow-line"></div>
+                <div class="team-node-group">
+                    <div class="team-node">
+                        <span class="node-icon">✈</span>
+                        <span>Flight</span>
+                    </div>
+                    <div class="team-node">
+                        <span class="node-icon">🏨</span>
+                        <span>Hotel</span>
+                    </div>
+                    <div class="team-node">
+                        <span class="node-icon">☁</span>
+                        <span>Weather</span>
+                    </div>
+                    <div class="team-node">
+                        <span class="node-icon">💰</span>
+                        <span>Budget</span>
+                    </div>
+                    <div class="team-node">
+                        <span class="node-icon">🗓</span>
+                        <span>Itinerary</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="workflow-steps-section" aria-label="How the TripBuddy AI workflow works">
+            <div class="section-heading">
+                <span class="eyebrow">How it works</span>
+                <h2>From request to final plan.</h2>
+            </div>
+
+            <div class="workflow-steps">
+                <div class="step-item"><span>Your request</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>Guardrails</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>Supervisor</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>Specialized agents</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>MCP tools</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>Human review</span></div>
+                <div class="step-arrow">↓</div>
+                <div class="step-item"><span>Final plan</span></div>
+            </div>
+        </section>
+
+        <section id="planner" class="planner-card" aria-label="Trip planner main input">
             <div class="card-header">
                 <div>
-                    <h2>Where do you want to go?</h2>
+                    <span class="eyebrow">Plan your trip</span>
+                    <h2>Tell your AI travel team what you need.</h2>
                     <p>
-                        Example: Plan a complete 7 days Japan trip from Bangladesh under 2 lakhs.
+                        Example: Plan a complete 7 days Japan trip from India under 2 lakhs.
                     </p>
                 </div>
-
                 <div class="status-pill">
                     <span class="status-dot"></span>
                     Online
@@ -51,53 +130,54 @@
             </div>
 
             <div class="input-area">
-                <textarea
-                    id="userInput"
-                    placeholder="Plan a complete 7 days Japan trip including flights, hotels and sightseeing under 2 lakhs..."
-                ></textarea>
-
-                <button id="sendBtn" onclick="sendMessage()">
-                    <span id="btnText">Generate Plan</span>
+                <textarea id="userInput"
+                    placeholder="Plan a complete 7 days Japan trip including flights, hotels and sightseeing under 2 lakhs..."></textarea>
+                <button id="sendBtn" onclick="sendMessage()" type="button">
+                    <span id="btnText">Generate Draft</span>
                     <span id="btnLoader" class="loader hidden"></span>
                 </button>
             </div>
 
-            <div class="quick-prompts">
-                <button onclick="setPrompt('Plan a complete 7 days Japan trip from Bangladesh including flights, hotels and sightseeing under 2 lakhs.')">
-                    Japan Trip
+            <div class="quick-prompts" aria-label="Popular trip ideas">
+                <button type="button"
+                    onclick="setPrompt('Plan a complete 7 days Japan trip from India including flights, hotels and sightseeing under 2 lakhs.')">
+                    Japan
                 </button>
-
-                <button onclick="setPrompt('Plan a 5 days Dubai trip from Dhaka with flights, hotels and sightseeing.')">
-                    Dubai Trip
+                <button type="button"
+                    onclick="setPrompt('Plan a 5 days Dubai trip from Delhi with flights, hotels and sightseeing.')">
+                    Dubai
                 </button>
-
-                <button onclick="setPrompt('Plan a 7 days Thailand trip from Bangladesh with budget hotels and sightseeing.')">
-                    Thailand Trip
+                <button type="button"
+                    onclick="setPrompt('Plan a 7 days Thailand trip from India with budget hotels and sightseeing.')">
+                    Thailand
                 </button>
-
-                <button onclick="setPrompt('Give me all country flight info.')">
+                <button type="button" onclick="setPrompt('Give me all country flight info.')">
                     Global Flights
                 </button>
             </div>
-
         </section>
 
-        <section id="resultSection" class="result-section hidden">
+        <section id="workflowSection" class="workflow-section hidden" aria-live="polite">
+            <div class="workflow-header">
+                <div>
+                    <span class="eyebrow">Supervisor Agent</span>
+                    <h2>Execution Plan</h2>
+                </div>
+                <span id="guardrailBadge" class="guardrail-badge">Guardrail passed</span>
+            </div>
+            <p id="supervisorReasoning" class="supervisor-reasoning"></p>
+            <div id="agentChips" class="agent-chips"></div>
+        </section>
 
+        <section id="resultSection" class="result-section hidden" aria-live="polite">
             <div class="result-header">
                 <div>
-                    <h2>Your AI Travel Plan</h2>
+                    <h2 id="resultTitle">Your AI Travel Plan</h2>
                     <p id="threadInfo">Thread ID: -</p>
                 </div>
-
                 <div class="result-actions">
-                    <button class="copy-btn" onclick="copyResult()">
-                        Copy
-                    </button>
-
-                    <button class="download-btn" onclick="downloadPDF()">
-                        Download PDF
-                    </button>
+                    <button class="copy-btn" onclick="copyResult()" type="button">Copy</button>
+                    <button class="download-btn" onclick="downloadPDF()" type="button">Download PDF</button>
                 </div>
             </div>
 
@@ -105,25 +185,88 @@
                 <h1 class="pdf-title">AI Travel Plan</h1>
                 <div id="resultBox" class="result-box"></div>
             </div>
-
         </section>
 
-        <section id="errorBox" class="error-box hidden"></section>
+        <section id="approvalSection" class="approval-section hidden" aria-live="polite">
+            <div class="approval-icon">👤</div>
+            <div class="approval-content">
+                <span class="eyebrow">Human-in-the-Loop</span>
+                <h2>Review the draft itinerary</h2>
+                <p id="approvalRequest">
+                    Approve the draft or provide feedback before the final plan is generated.
+                </p>
 
+                <textarea id="approvalFeedback" class="feedback-input"
+                    placeholder="Add revision feedback, for example: reduce the hotel cost and add one free day..."></textarea>
+
+                <div class="approval-actions">
+                    <button id="approveBtn" class="approve-btn" onclick="submitApproval(true)" type="button">
+                        Approve & Generate Final
+                    </button>
+                    <button id="reviseBtn" class="revise-btn" onclick="submitApproval(false)" type="button">
+                        Revise Using Feedback
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="errorBox" class="error-box hidden" role="alert" aria-live="assertive"></section>
+
+        <section class="final-cta" aria-label="Plan another trip CTA">
+            <div>
+                <span class="eyebrow">Ready for another journey?</span>
+                <h2>Plan smarter. Travel better.</h2>
+            </div>
+            <a class="primary-button" href="#planner">Plan Another Trip</a>
+        </section>
     </main>
 
-    <footer>
-        Built with FastAPI, LangGraph, Groq, PostgreSQL, Tavily and AviationStack
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div>
+                <div class="brand-wrap footer-brand">
+                    <div class="brand-mark">✈</div>
+                    <span class="brand-name">TripBuddy AI</span>
+                </div>
+                <p>Plan smarter.<br>Travel better.</p>
+            </div>
+
+            <div>
+                <h3>Product</h3>
+                <ul>
+                    <li>Plan a Trip</li>
+                    <li>AI Workflow</li>
+                    <li>Trip Result</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>AI System</h3>
+                <ul>
+                    <li>Supervisor</li>
+                    <li>Multi-Agent AI</li>
+                    <li>MCP</li>
+                    <li>Human-in-the-Loop</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Technology</h3>
+                <ul>
+                    <li>FastAPI</li>
+                    <li>LangGraph</li>
+                    <li>MCP</li>
+                    <li>PostgreSQL</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">© 2026 TripBuddy AI</div>
     </footer>
 
-    <!-- Markdown Renderer -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <!-- PDF Download Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <!-- Your Custom JS -->
     <script src="/static/script.js"></script>
-
 </body>
+
 </html>

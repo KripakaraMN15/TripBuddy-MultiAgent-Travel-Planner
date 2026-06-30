@@ -1,4 +1,9 @@
-# Byte-compiled / optimized / DLL files
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.py[codz]
 *$py.class
@@ -77,6 +82,11 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# Frontend build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 
 # IPython
 profile_default/

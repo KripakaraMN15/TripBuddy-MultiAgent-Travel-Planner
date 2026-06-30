@@ -64,13 +64,13 @@ COUNTRY_ALIASES = {
 
 # Preferred main airport for country-level search
 COUNTRY_MAIN_AIRPORT = {
-    "BD": "DAC",
     "IN": "DEL",
     "JP": "NRT",
     "US": "JFK",
     "GB": "LHR",
     "AE": "DXB",
     "SG": "SIN",
+    "BD": "DAC",
     "MY": "KUL",
     "TH": "BKK",
     "ID": "CGK",
@@ -221,11 +221,10 @@ def resolve_location_to_iata(location: str):
     Converts country/city/airport/IATA into IATA code.
 
     Examples:
-    Bangladesh -> DAC
+    Bengaluru -> BLR
     Japan -> NRT
     Dhaka -> DAC
     Tokyo -> NRT
-    DAC -> DAC
     """
 
     if not location:
@@ -350,7 +349,7 @@ def parse_route(query: str):
     if any(keyword in q_lower for keyword in global_keywords):
         return None, None
 
-    # Direct IATA code route: DAC to NRT
+    # Direct IATA code route: BLR to NRT
     codes = re.findall(r"\b[A-Z]{3}\b", q)
 
     if len(codes) >= 2:
