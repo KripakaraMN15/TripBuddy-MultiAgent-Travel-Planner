@@ -159,14 +159,6 @@ curl -X POST http://127.0.0.1:8000/api/travel \
 5. The itinerary agent creates a practical travel plan.
 6. The final response is returned through the web API.
 
-## Contributing
-
-Contributions are welcome. If you want to improve the app, add new travel features, or fix issues:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Open a pull request
 
 ## Acknowledgments
 
