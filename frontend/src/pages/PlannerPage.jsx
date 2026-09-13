@@ -318,7 +318,7 @@ export function PlannerPage() {
                             </div>
 
                             <div
-                                className="prose max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
+                                className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
                                 dangerouslySetInnerHTML={{
                                     __html: marked.parse(result || 'Your generated itinerary will appear here.'),
                                 }}

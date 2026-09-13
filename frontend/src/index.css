@@ -121,6 +121,56 @@ textarea {
   text-decoration: underline;
 }
 
+.itinerary-content {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.itinerary-content h1,
+.itinerary-content h2,
+.itinerary-content h3,
+.itinerary-content h4,
+.itinerary-content h5,
+.itinerary-content h6 {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.itinerary-content h1 {
+  font-size: 1.5rem;
+}
+
+.itinerary-content h2 {
+  font-size: 1.25rem;
+}
+
+.itinerary-content h3 {
+  font-size: 1.0625rem;
+}
+
+.itinerary-content h4,
+.itinerary-content h5,
+.itinerary-content h6 {
+  font-size: 0.9375rem;
+}
+
+.itinerary-content p,
+.itinerary-content li {
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+.itinerary-content strong,
+.itinerary-content b {
+  font-weight: 750;
+}
+
 @keyframes float-soft {
   0%,
   100% {
