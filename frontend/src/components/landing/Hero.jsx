@@ -1,81 +1,120 @@
-import { ArrowRight, Check, Clock3, Network, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+
+const workflowStages = [
+    'Request',
+    'Guardrails',
+    'Supervisor',
+    'Specialists',
+    'Live tools',
+    'Human review',
+    'Final plan',
+]
 
 export function Hero() {
-    return (
-        <section className="relative overflow-hidden border-b border-slate-200/80 px-4 pb-16 pt-12 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
-            <div className="absolute inset-x-0 top-0 h-px bg-slate-200" />
-            <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.03fr_0.97fr] lg:gap-16">
-                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: 'easeOut' }} className="text-left">
-                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e4d4c7] bg-[#fbf4ed] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#8a5a3b]">
-                        <Network className="h-3.5 w-3.5" />
-                        LANGGRAPH · MCP · MULTI-AGENT AI · HITL
-                    </div>
-                    <h1 className="max-w-2xl text-5xl font-black leading-[0.88] tracking-[-0.085em] text-slate-950 sm:text-7xl lg:text-[6.5rem]">
-                        YOUR NEXT<br />
-                        JOURNEY.<br />
-                        <span className="text-[#c66d3f]">PLANNED BY AI.</span>
-                    </h1>
-                    <p className="mt-7 max-w-lg text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                        TripBuddy AI coordinates a dedicated travel team to research flights, hotels, weather, budgets, and itineraries before a human reviews the draft plan.
-                    </p>
-                    <div className="mt-9 flex flex-wrap items-center gap-5">
-                        <Link to="/planner" className="group inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(15,23,42,0.12)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#c66d3f] active:translate-y-0">
-                            Start Planning
-                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                        <a href="#ai-team" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-[#c66d3f]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#c66d3f]" />
-                            Meet your AI travel team
-                        </a>
-                    </div>
-                </motion.div>
+    const navigate = useNavigate()
+    const [query, setQuery] = useState('')
 
-                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: 'easeOut', delay: 0.08 }} className="relative lg:pt-4">
-                    <div className="relative overflow-hidden rounded-[30px] border border-slate-200 bg-white/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.06)] sm:p-6">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(198,109,63,0.12),transparent_28%),radial-gradient(circle_at_right,_rgba(148,163,184,0.12),transparent_30%)]" />
-                        <div className="relative space-y-5">
-                            <div className="flex items-start justify-between rounded-2xl border border-slate-200 bg-[#f9f5f1] px-4 py-3.5">
-                                <div>
-                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Destination</p>
-                                    <p className="mt-1 text-2xl font-black tracking-[-0.06em] text-slate-900">Tokyo</p>
-                                    <p className="mt-1 text-xs text-slate-500">Bengaluru → Tokyo · 7 days</p>
-                                </div>
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaf4ed] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-[#3f6c5f]"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#3f6c5f]" />Live + AI</span>
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-3">
-                                {[
-                                    ['Flights', '₹32,400'],
-                                    ['Hotels', '₹18,600'],
-                                    ['Total budget', '₹64,000'],
-                                ].map(([label, value]) => (
-                                    <div key={label} className="rounded-2xl border border-slate-200 bg-white px-3 py-4 transition duration-200 hover:-translate-y-1 hover:border-[#d9b799]">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
-                                        <p className="mt-2 text-base font-extrabold tracking-[-0.04em] text-slate-900">{value}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="rounded-[24px] border border-slate-200 bg-[#f7f4f1] p-4">
-                                <div className="mb-3 flex items-center justify-between">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Route</p>
-                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500"><Clock3 className="h-3.5 w-3.5" /> Planning in progress</span>
-                                </div>
-                                <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-5">
-                                    <div className="absolute left-8 top-1/2 h-px w-[calc(100%-4rem)] -translate-y-1/2 bg-gradient-to-r from-[#d9b799] via-[#c66d3f] to-[#ccd5df]" />
-                                    <div className="relative flex items-center justify-between text-xs font-semibold text-slate-500">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3e3d3] text-[#8a5a3b]">BLR</span>
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e8ebef] text-slate-600">NRT</span>
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3e3d3] text-[#8a5a3b]">HND</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-1 text-xs text-slate-500">
-                                <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-[#c66d3f]" /> 5 agents researching</span>
-                                <span className="inline-flex items-center gap-1.5 font-semibold text-[#3f6c5f]"><Check className="h-3.5 w-3.5" /> Guardrails passed</span>
-                            </div>
-                        </div>
-                    </div>
+    function handleSearch(event) {
+        event.preventDefault()
+        navigate('/planner', {
+            state: { prompt: query.trim() },
+        })
+    }
+
+    return (
+        <section className="relative min-h-[100svh] overflow-hidden">
+            <div
+                className="absolute inset-0 scale-105 bg-cover bg-center"
+                style={{ backgroundImage: "url('/hero-escape.jpg')" }}
+                aria-hidden="true"
+            />
+            <div
+                className="absolute inset-0 bg-gradient-to-b from-[#f6e9d8]/35 via-transparent to-[#f4efe8]"
+                aria-hidden="true"
+            />
+            <div
+                className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,248,240,0.18),transparent_55%)]"
+                aria-hidden="true"
+            />
+
+            <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-4xl flex-col items-center justify-center px-4 pb-28 pt-28 text-center sm:px-6 lg:px-8">
+                <motion.h1
+                    initial={{ opacity: 0, y: 22 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="max-w-3xl text-[2.6rem] font-extrabold leading-[1.05] tracking-[-0.04em] text-[var(--ink)] sm:text-6xl lg:text-[4.25rem]"
+                >
+                    The best place to plan your{' '}
+                    <span className="font-serif italic font-medium text-[var(--accent)]">next escape</span>.
+                </motion.h1>
+
+                <motion.p
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.75, ease: 'easeOut', delay: 0.16 }}
+                    className="mt-5 max-w-xl text-base leading-7 text-[var(--ink-soft)] sm:text-lg"
+                >
+                    Feeling ready to explore? Tell TripBuddy where you want to go — our agents handle flights,
+                    stays, weather, and your day-by-day plan.
+                </motion.p>
+
+                <motion.form
+                    onSubmit={handleSearch}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut', delay: 0.24 }}
+                    className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-full border border-white/70 bg-white/90 p-1.5 pl-4 shadow-[0_18px_50px_rgba(40,30,20,0.16)] backdrop-blur-xl"
+                >
+                    <Search className="h-4 w-4 shrink-0 text-[var(--muted)]" strokeWidth={1.8} />
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder="Search for a destination…"
+                        className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)] sm:text-[15px]"
+                        aria-label="Search for a destination"
+                    />
+                    <button
+                        type="submit"
+                        className="btn-ink shrink-0 rounded-full px-5 py-3 text-sm font-semibold"
+                    >
+                        Plan Now
+                    </button>
+                </motion.form>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, delay: 0.4 }}
+                    className="absolute bottom-8 left-0 right-0 px-4"
+                >
+                    <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                        Built around a 7-stage agentic workflow
+                    </p>
+                    <a
+                        href="#how-it-works"
+                        className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 sm:gap-1.5"
+                        aria-label="See the 7-stage agentic workflow"
+                    >
+                        {workflowStages.map((stage, index) => (
+                            <span key={stage} className="contents">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/55 bg-white/55 px-2.5 py-1 text-[11px] font-semibold text-[var(--ink-soft)] backdrop-blur-md transition hover:bg-white/80 sm:text-xs">
+                                    <span className="font-serif italic text-[var(--accent)]">
+                                        {String(index + 1).padStart(2, '0')}
+                                    </span>
+                                    {stage}
+                                </span>
+                                {index < workflowStages.length - 1 && (
+                                    <span className="hidden text-[var(--muted)] sm:inline" aria-hidden="true">
+                                        →
+                                    </span>
+                                )}
+                            </span>
+                        ))}
+                    </a>
                 </motion.div>
             </div>
         </section>

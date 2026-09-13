@@ -1,37 +1,56 @@
 import { motion } from 'framer-motion'
 
 const steps = [
-    'Your request',
-    'Guardrails',
-    'Supervisor',
-    'Specialized agents',
-    'MCP tools',
-    'Human review',
-    'Final plan',
+    { title: 'Your request', copy: 'Describe the trip in plain language.' },
+    { title: 'Guardrails', copy: 'We keep the brief travel-focused and safe.' },
+    { title: 'Supervisor', copy: 'The right agents are chosen for your goals.' },
+    { title: 'Specialists', copy: 'Flights, hotels, weather, and budget research.' },
+    { title: 'Live tools', copy: 'MCP tools pull real search and weather signals.' },
+    { title: 'Human review', copy: 'Approve the draft or ask for revisions.' },
+    { title: 'Final plan', copy: 'A polished itinerary ready to use.' },
 ]
 
 export function HowItWorks() {
     return (
-        <section className="border-y border-slate-200/80 bg-[#f5efe8] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-12 max-w-2xl">
-                    <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-[#c66d3f]">How it works</p>
-                    <h2 className="text-4xl font-black tracking-[-0.06em] text-slate-950 sm:text-5xl">From request to final plan.</h2>
+        <section
+            id="how-it-works"
+            className="relative overflow-hidden border-y border-[var(--line)] px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+        >
+            <div
+                className="absolute inset-0 bg-cover bg-center opacity-20"
+                style={{ backgroundImage: "url('/section-nature.jpg')" }}
+                aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-[var(--sand)]/88" aria-hidden="true" />
+
+            <div className="relative mx-auto max-w-6xl">
+                <div className="mx-auto mb-14 max-w-2xl text-center">
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                        7-stage agentic workflow
+                    </p>
+                    <h2 className="text-4xl font-extrabold tracking-[-0.04em] text-[var(--ink)] sm:text-5xl">
+                        From a wish to a{' '}
+                        <span className="font-serif italic font-medium text-[var(--accent)]">finished journey</span>.
+                    </h2>
                 </div>
 
-                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-7 lg:gap-4">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {steps.map((step, index) => (
                         <motion.div
-                            key={step}
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.35, delay: index * 0.08 }}
-                            className="relative"
+                            key={step.title}
+                            initial={{ opacity: 0, y: 14 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.25 }}
+                            transition={{ duration: 0.4, delay: index * 0.05 }}
+                            className="rounded-[26px] border border-white/60 bg-white/75 p-5 backdrop-blur-md"
                         >
-                            <div className="group h-full min-h-28 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-1 hover:border-[#d9b799] hover:shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
-                                <div className="flex items-center justify-between"><div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c66d3f]">0{index + 1}</div>{index < steps.length - 1 && <span className="hidden text-[#c66d3f] lg:block">→</span>}</div>
-                                <div className="mt-4 text-sm font-bold leading-5 text-slate-800">{step}</div>
-                            </div>
+                            <p className="font-serif text-3xl italic text-[var(--accent)]">
+                                {String(index + 1).padStart(2, '0')}
+                            </p>
+                            <h3 className="mt-3 text-base font-bold tracking-[-0.02em] text-[var(--ink)]">
+                                {step.title}
+                            </h3>
+                            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{step.copy}</p>
                         </motion.div>
                     ))}
                 </div>

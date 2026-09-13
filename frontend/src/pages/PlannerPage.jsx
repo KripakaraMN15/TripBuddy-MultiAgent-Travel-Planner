@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from 'lucide-react'
 import { marked } from 'marked'
+import { useLocation } from 'react-router-dom'
+import { Seo } from '../components/Seo'
 import { submitApproval, submitTravelRequest } from '../services/api'
 
 const starterPrompts = [
@@ -19,6 +21,7 @@ const AGENT_LABELS = {
 }
 
 export function PlannerPage() {
+    const location = useLocation()
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [threadId, setThreadId] = useState(() => localStorage.getItem('travel_thread_id') || '')
@@ -33,19 +36,32 @@ export function PlannerPage() {
 
     const promptList = useMemo(() => starterPrompts, [])
 
+    useEffect(() => {
+        const prompt = location.state?.prompt
+        if (typeof prompt === 'string' && prompt.trim()) {
+            setInput(prompt.trim())
+        }
+    }, [location.state])
+
     async function handleSubmit(event) {
         event.preventDefault()
         setError('')
 
-        if (!input.trim()) {
+        const trimmed = input.trim()
+        if (!trimmed) {
             setError('Please enter your travel request first.')
+            return
+        }
+
+        if (trimmed.length < 10) {
+            setError('Please provide a bit more detail so the planner can generate a useful trip suggestion.')
             return
         }
 
         setIsLoading(true)
 
         try {
-            const response = await submitTravelRequest(input.trim(), threadId || null)
+            const response = await submitTravelRequest(trimmed, threadId || null)
 
             if (response.thread_id) {
                 setThreadId(response.thread_id)
@@ -132,29 +148,50 @@ export function PlannerPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#f8f4ee] px-4 py-10 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-8 flex items-center justify-between gap-4">
+        <main className="relative min-h-screen overflow-hidden px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+            <Seo
+                title="Plan a trip"
+                description="Describe your trip and TripBuddy AI will research flights, hotels, weather, and budget before you approve a polished itinerary."
+                path="/planner"
+            />
+            <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-cover bg-center opacity-30"
+                style={{ backgroundImage: "url('/hero-escape.jpg')" }}
+                aria-hidden="true"
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-[var(--sand)]/40 via-[var(--sand)]/85 to-[var(--sand)]" aria-hidden="true" />
+
+            <div className="relative mx-auto max-w-6xl">
+                <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#c66d3f]">Trip planner</p>
-                        <h1 className="mt-2 text-4xl font-black tracking-[-0.06em] text-slate-950">Plan smarter. Travel better.</h1>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                            Trip planner
+                        </p>
+                        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.04em] text-[var(--ink)] sm:text-5xl">
+                            Plan smarter.{' '}
+                            <span className="font-serif italic font-medium text-[var(--accent)]">Travel calmer.</span>
+                        </h1>
                     </div>
                     {threadId && (
-                        <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">
-                            Thread: {threadId}
+                        <div className="rounded-full border border-[var(--line)] bg-white/80 px-3 py-1.5 text-xs font-medium text-[var(--muted)] backdrop-blur-sm">
+                            Thread: {threadId.slice(0, 18)}…
                         </div>
                     )}
                 </div>
 
-                <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-                    <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)] sm:p-6">
+                <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+                    <section className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6">
                         <div className="mb-5 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f3e3d3] text-[#8a5a3b]">
-                                <MessageSquareText className="h-5 w-5" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sand)] text-[var(--ink)] ring-1 ring-black/5">
+                                <MessageSquareText className="h-5 w-5" strokeWidth={1.7} />
                             </div>
                             <div>
-                                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Travel request</p>
-                                <h2 className="text-xl font-black tracking-[-0.05em] text-slate-900">Describe your trip</h2>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                                    Travel request
+                                </p>
+                                <h2 className="text-xl font-bold tracking-[-0.03em] text-[var(--ink)]">
+                                    Describe your trip
+                                </h2>
                             </div>
                         </div>
 
@@ -163,19 +200,24 @@ export function PlannerPage() {
                                 value={input}
                                 onChange={(event) => setInput(event.target.value)}
                                 rows={8}
-                                className="w-full rounded-[22px] border border-slate-200 bg-[#faf8f6] p-4 text-base text-slate-800 outline-none ring-0 transition placeholder:text-slate-400 focus:border-[#d9b799]"
+                                maxLength={5000}
+                                className="w-full rounded-[24px] border border-[var(--line)] bg-[var(--sand)]/60 p-4 text-base text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent-soft)] focus:bg-white"
                                 placeholder="Example: Plan a 7-day Tokyo trip from Bengaluru with a mid-range budget, great food recommendations, and safe nightlife options."
+                                aria-label="Describe your trip"
                             />
+                            <div className="text-right text-xs text-[var(--muted)]">{input.length}/5000</div>
 
                             <div className="space-y-3">
-                                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Sample prompts</p>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                                    Sample prompts
+                                </p>
                                 <div className="flex flex-wrap gap-2">
                                     {promptList.map((prompt) => (
                                         <button
                                             key={prompt}
                                             type="button"
                                             onClick={() => setInput(prompt)}
-                                            className="rounded-full border border-slate-200 bg-[#f7f4f1] px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-[#d9b799] hover:text-slate-950"
+                                            className="rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)] transition hover:border-[var(--accent-soft)] hover:text-[var(--ink)]"
                                         >
                                             {prompt.slice(0, 32)}...
                                         </button>
@@ -193,7 +235,7 @@ export function PlannerPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="btn-ink inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed"
                             >
                                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                 {isLoading ? 'Planning your trip…' : 'Generate travel plan'}
@@ -207,19 +249,28 @@ export function PlannerPage() {
                                 id="workflow"
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)] sm:p-6"
+                                className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
                             >
                                 <div className="mb-4 flex items-center justify-between gap-4">
                                     <div>
-                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Workflow</p>
-                                        <h3 className="mt-2 text-2xl font-black tracking-[-0.05em] text-slate-900">Supervisor reasoning</h3>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                                            Workflow
+                                        </p>
+                                        <h3 className="mt-2 font-serif text-3xl italic text-[var(--ink)]">
+                                            Supervisor reasoning
+                                        </h3>
                                     </div>
-                                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${workflow.guardrail_allowed === false ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                    <span
+                                        className={`rounded-full px-3 py-1 text-xs font-bold ${workflow.guardrail_allowed === false
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-emerald-100 text-emerald-700'
+                                            }`}
+                                    >
                                         {workflow.guardrail_allowed === false ? 'Guardrail blocked' : 'Guardrail passed'}
                                     </span>
                                 </div>
 
-                                <p className="rounded-2xl bg-[#fbf8f5] p-4 text-sm leading-6 text-slate-700">
+                                <p className="rounded-2xl bg-[var(--sand)]/70 p-4 text-sm leading-6 text-[var(--ink-soft)]">
                                     {workflow.supervisor_reasoning}
                                 </p>
 
@@ -227,7 +278,7 @@ export function PlannerPage() {
                                     {(workflow.selected_agents || []).map((agent) => (
                                         <span
                                             key={agent}
-                                            className="rounded-full border border-[#ead9c6] bg-[#f7efe8] px-2.5 py-1.5 text-xs font-bold text-[#8a5a3b]"
+                                            className="rounded-full border border-[var(--line)] bg-white px-2.5 py-1.5 text-xs font-bold text-[var(--ink-soft)]"
                                         >
                                             {AGENT_LABELS[agent] || agent}
                                         </span>
@@ -240,16 +291,16 @@ export function PlannerPage() {
                             id="result"
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)] sm:p-6"
+                            className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
                         >
                             <div className="mb-4 flex items-center justify-between gap-3">
-                                <h3 className="text-2xl font-black tracking-[-0.05em] text-slate-900">{resultTitle}</h3>
+                                <h3 className="font-serif text-3xl italic text-[var(--ink)]">{resultTitle}</h3>
                                 {result && (
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={handleCopy}
-                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                                            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
                                         >
                                             {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                                             {copied ? 'Copied' : 'Copy'}
@@ -257,7 +308,7 @@ export function PlannerPage() {
                                         <button
                                             type="button"
                                             onClick={handleDownload}
-                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                                            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
                                         >
                                             <Download className="h-3.5 w-3.5" />
                                             Download
@@ -267,8 +318,10 @@ export function PlannerPage() {
                             </div>
 
                             <div
-                                className="prose max-w-none rounded-[22px] border border-slate-200 bg-[#f9f6f3] p-4 text-sm leading-7 text-slate-700"
-                                dangerouslySetInnerHTML={{ __html: marked.parse(result || 'Your generated itinerary will appear here.') }}
+                                className="prose max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
+                                dangerouslySetInnerHTML={{
+                                    __html: marked.parse(result || 'Your generated itinerary will appear here.'),
+                                }}
                             />
                         </motion.div>
 
@@ -276,25 +329,31 @@ export function PlannerPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="rounded-[28px] border border-[#ead9c6] bg-[#fbf5f0] p-5 shadow-[0_20px_60px_rgba(15,23,42,0.04)] sm:p-6"
+                                className="rounded-[30px] border border-[var(--accent-soft)]/40 bg-[#fbf5f0]/95 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.06)] backdrop-blur-xl sm:p-6"
                             >
                                 <div className="mb-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f3e3d3] text-[#8a5a3b]">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--accent)] ring-1 ring-black/5">
                                         <Check className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#9d6a4b]">Human review</p>
-                                        <h3 className="text-xl font-black tracking-[-0.05em] text-slate-900">Approve this draft</h3>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
+                                            Human review
+                                        </p>
+                                        <h3 className="text-xl font-bold tracking-[-0.03em] text-[var(--ink)]">
+                                            Approve this draft
+                                        </h3>
                                     </div>
                                 </div>
 
-                                <p className="mb-4 rounded-2xl bg-white p-3 text-sm text-slate-700">{approvalRequest}</p>
+                                <p className="mb-4 rounded-2xl bg-white/80 p-3 text-sm text-[var(--ink-soft)]">
+                                    {approvalRequest}
+                                </p>
 
                                 <textarea
                                     value={approvalFeedback}
                                     onChange={(event) => setApprovalFeedback(event.target.value)}
                                     rows={4}
-                                    className="w-full rounded-[20px] border border-slate-200 bg-white p-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#d9b799]"
+                                    className="w-full rounded-[20px] border border-[var(--line)] bg-white p-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent-soft)]"
                                     placeholder="Optional revision feedback..."
                                 />
 
@@ -302,7 +361,7 @@ export function PlannerPage() {
                                     <button
                                         type="button"
                                         onClick={() => handleApproval(true)}
-                                        className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"
+                                        className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white"
                                     >
                                         <Check className="h-4 w-4" />
                                         Approve
@@ -310,7 +369,7 @@ export function PlannerPage() {
                                     <button
                                         type="button"
                                         onClick={() => handleApproval(false)}
-                                        className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-sm font-semibold text-white"
+                                        className="inline-flex items-center gap-2 rounded-full bg-[#1c1916] px-4 py-2.5 text-sm font-semibold text-white"
                                     >
                                         <X className="h-4 w-4" />
                                         Revise

@@ -1,0 +1,14 @@
+# TripBuddy AI
+
+> Multi-agent travel planner that turns a natural-language trip request into flights, hotels, weather, budget guidance, and a reviewable itinerary.
+
+## Site
+- Home: https://tripbuddy-multiagent-travel-planner-1.onrender.com/
+- Trip planner: https://tripbuddy-multiagent-travel-planner-1.onrender.com/planner
+
+## Product
+TripBuddy coordinates specialist agents (flights, hotels, weather, budget, itinerary) with human-in-the-loop approval before returning a final plan.
+
+## Notes for assistants
+- Prefer linking users to /planner for actionable trip planning.
+- Do not invent live prices; the product may label estimates when live APIs are unavailable.

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tripbuddy-multiagent-travel-planner-1.onrender.com/sitemap.xml

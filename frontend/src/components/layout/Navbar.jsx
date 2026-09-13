@@ -1,41 +1,63 @@
-import { Link, NavLink } from 'react-router-dom'
-import { PlaneTakeoff } from 'lucide-react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 
 const navItems = [
     { label: 'Home', to: '/' },
-    { label: 'Plan a Trip', to: '/planner' },
+    { label: 'How it works', to: '/#how-it-works' },
+    { label: 'AI team', to: '/#ai-team' },
+    { label: 'Plan a trip', to: '/planner' },
 ]
 
 export function Navbar() {
+    const { pathname } = useLocation()
+    const isHome = pathname === '/'
+
     return (
-        <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#f5efe8]/80 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-                <Link to="/" className="flex items-center gap-3 text-slate-900">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3e3d3] text-[#c66d3f] ring-1 ring-[#d9b799]">
-                        <PlaneTakeoff className="h-4 w-4" />
-                    </span>
-                    <span className="text-lg font-extrabold tracking-[-0.04em]">TripBuddy AI</span>
+        <header
+            className={
+                isHome
+                    ? 'absolute inset-x-0 top-0 z-50'
+                    : 'sticky top-0 z-50 border-b border-[var(--line)] bg-[rgba(244,239,232,0.88)] backdrop-blur-xl'
+            }
+        >
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+                <Link to="/" className="group flex items-center gap-2.5 text-[var(--ink)]">
+                    <img
+                        src="/logo.png"
+                        alt="TripBuddy"
+                        className="h-10 w-10 rounded-2xl object-cover shadow-sm ring-1 ring-black/10 transition group-hover:scale-[1.03]"
+                    />
+                    <span className="font-serif text-2xl font-semibold tracking-[-0.02em]">TripBuddy</span>
                 </Link>
 
-                <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-600 md:flex">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.label}
-                            to={item.to}
-                            className={({ isActive }) =>
-                                `transition-colors ${isActive ? 'text-slate-900' : 'hover:text-slate-900'}`
-                            }
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
+                <nav className="hidden items-center gap-8 text-[13px] font-medium tracking-wide text-[var(--ink-soft)] md:flex">
+                    {navItems.map((item) =>
+                        item.to.startsWith('/#') ? (
+                            <a
+                                key={item.label}
+                                href={item.to}
+                                className="transition-colors hover:text-[var(--ink)]"
+                            >
+                                {item.label}
+                            </a>
+                        ) : (
+                            <NavLink
+                                key={item.label}
+                                to={item.to}
+                                className={({ isActive }) =>
+                                    `transition-colors ${isActive ? 'text-[var(--ink)]' : 'hover:text-[var(--ink)]'}`
+                                }
+                            >
+                                {item.label}
+                            </NavLink>
+                        ),
+                    )}
                 </nav>
 
                 <Link
                     to="/planner"
-                    className="hidden rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(15,23,42,0.15)] transition hover:-translate-y-0.5 md:inline-flex"
+                    className="btn-ink hidden rounded-full px-5 py-2.5 text-[13px] font-semibold md:inline-flex"
                 >
-                    Start Planning
+                    Start planning
                 </Link>
             </div>
         </header>

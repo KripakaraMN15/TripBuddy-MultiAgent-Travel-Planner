@@ -1,48 +1,145 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Building2, CalendarDays, CloudSun, Network, Plane, Wallet } from 'lucide-react'
 
 const agents = [
-    { name: 'Supervisor', icon: Network, accent: 'bg-[#f3e3d3] text-[#8a5a3b]', primary: true },
-    { name: 'Flight Agent', icon: Plane, accent: 'bg-[#eff3f8] text-slate-700' },
-    { name: 'Hotel Agent', icon: Building2, accent: 'bg-[#f3e3d3] text-[#8a5a3b]' },
-    { name: 'Weather Agent', icon: CloudSun, accent: 'bg-[#eef5f0] text-[#3f6c5f]' },
-    { name: 'Budget Agent', icon: Wallet, accent: 'bg-[#f7f0e8] text-[#9d6a4b]' },
-    { name: 'Itinerary Agent', icon: CalendarDays, accent: 'bg-[#eef1f8] text-slate-700' },
+    {
+        id: 'supervisor',
+        name: 'Supervisor',
+        role: 'Coordinates the plan',
+        icon: Network,
+        detail:
+            'Reads your travel brief, runs input guardrails, extracts trip constraints, and routes work only to the specialist agents you actually need.',
+    },
+    {
+        id: 'flight',
+        name: 'Flight Agent',
+        role: 'Routes & timing',
+        icon: Plane,
+        detail:
+            'Looks up airport and airline signals through AviationStack MCP, then drafts practical flight guidance — likely airports, typical duration, and booking advice.',
+    },
+    {
+        id: 'hotel',
+        name: 'Hotel Agent',
+        role: 'Places to stay',
+        icon: Building2,
+        detail:
+            'Uses Tavily search to surface neighborhood-aware stay options that fit your destination, travel style, and budget cues.',
+    },
+    {
+        id: 'weather',
+        name: 'Weather Agent',
+        role: 'Climate & packing',
+        icon: CloudSun,
+        detail:
+            'Pulls current conditions and short-range forecasts from OpenWeather so the itinerary accounts for rain, heat, and packing needs.',
+    },
+    {
+        id: 'budget',
+        name: 'Budget Agent',
+        role: 'Cost realism',
+        icon: Wallet,
+        detail:
+            'Stress-tests the trip against your spend limit — highlighting risk areas, approximate cost buckets, and ways to keep the plan feasible.',
+    },
+    {
+        id: 'itinerary',
+        name: 'Itinerary Agent',
+        role: 'Day-by-day flow',
+        icon: CalendarDays,
+        detail:
+            'Merges every specialist finding into a clear draft itinerary ready for human review before the final polished response.',
+    },
 ]
 
 export function AgentNetwork() {
+    const [activeId, setActiveId] = useState(agents[0].id)
+    const activeAgent = agents.find((agent) => agent.id === activeId) || agents[0]
+    const ActiveIcon = activeAgent.icon
+
     return (
-        <section id="ai-team" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-12 max-w-2xl">
-                    <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-[#c66d3f]">Your AI travel team</p>
-                    <h2 className="text-4xl font-black tracking-[-0.06em] text-slate-950 sm:text-5xl">Specialized agents, working as one trip planner.</h2>
-                    <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">One supervisor turns your brief into a coordinated research pass, then brings every finding back into a single, reviewable plan.</p>
+        <section id="ai-team" className="scroll-mt-24 px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <div className="mx-auto max-w-6xl">
+                <div className="mx-auto mb-14 max-w-2xl text-center">
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                        Your AI travel team
+                    </p>
+                    <h2 className="text-4xl font-extrabold tracking-[-0.04em] text-[var(--ink)] sm:text-5xl">
+                        Specialized agents,{' '}
+                        <span className="font-serif italic font-medium text-[var(--accent)]">one calm plan</span>.
+                    </h2>
+                    <p className="mt-4 text-base leading-7 text-[var(--muted)]">
+                        Hover or tap an agent to see exactly what it contributes to the workflow.
+                    </p>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[30px] border border-slate-200 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.05)] sm:p-8">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(198,109,63,0.06),transparent_32%)]" />
-                    <div className="relative flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-10">
+                <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+                    <div className="grid gap-3 sm:grid-cols-2">
                         {agents.map((agent, index) => {
                             const Icon = agent.icon
+                            const isActive = activeId === agent.id
+
                             return (
-                                <motion.div
-                                    key={agent.name}
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.38, delay: index * 0.08 }}
-                                    className={`group relative flex flex-col items-center gap-3 ${agent.primary ? 'lg:min-w-40' : 'lg:flex-1'}`}
+                                <motion.button
+                                    key={agent.id}
+                                    type="button"
+                                    initial={{ opacity: 0, y: 16 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.45, delay: index * 0.05 }}
+                                    onMouseEnter={() => setActiveId(agent.id)}
+                                    onFocus={() => setActiveId(agent.id)}
+                                    onClick={() => setActiveId(agent.id)}
+                                    aria-pressed={isActive}
+                                    className={`group rounded-[26px] border p-5 text-left transition duration-300 ${
+                                        isActive
+                                            ? 'border-[var(--accent-soft)] bg-white shadow-[0_18px_48px_rgba(40,30,20,0.1)]'
+                                            : 'border-[var(--line)] bg-white/70 hover:-translate-y-0.5 hover:border-[var(--accent-soft)]/60 hover:bg-white'
+                                    }`}
                                 >
-                                    {!agent.primary && <div className="absolute -top-5 left-1/2 h-5 w-px bg-[#d9b799] lg:-left-5 lg:top-8 lg:h-px lg:w-5" aria-hidden="true" />}
-                                    <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${agent.accent} ring-1 ring-slate-200 transition duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]`}>
-                                        <Icon className="h-7 w-7" />
+                                    <div
+                                        className={`mb-4 flex h-11 w-11 items-center justify-center rounded-full ring-1 transition ${
+                                            isActive
+                                                ? 'bg-[var(--accent)] text-white ring-[var(--accent)]'
+                                                : 'bg-[var(--sand)] text-[var(--ink)] ring-black/5 group-hover:bg-[var(--accent)] group-hover:text-white'
+                                        }`}
+                                    >
+                                        <Icon className="h-5 w-5" strokeWidth={1.7} />
                                     </div>
-                                    <span className="text-sm font-bold text-slate-700">{agent.name}</span>
-                                    {agent.primary && <span className="rounded-full bg-[#f3e3d3] px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-[#8a5a3b]">Coordinates the plan</span>}
-                                </motion.div>
+                                    <h3 className="text-base font-bold tracking-[-0.03em] text-[var(--ink)]">
+                                        {agent.name}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-[var(--muted)]">{agent.role}</p>
+                                </motion.button>
                             )
                         })}
                     </div>
+
+                    <AnimatePresence mode="wait">
+                        <motion.aside
+                            key={activeAgent.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.28 }}
+                            className="sticky top-28 rounded-[32px] border border-white/70 bg-[#1c1916] p-7 text-white shadow-[0_24px_60px_rgba(40,30,20,0.16)] sm:p-8"
+                            aria-live="polite"
+                        >
+                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-[#e8c4ad]">
+                                <ActiveIcon className="h-6 w-6" strokeWidth={1.7} />
+                            </div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d4a48a]">
+                                Agent detail
+                            </p>
+                            <h3 className="mt-2 font-serif text-3xl italic sm:text-4xl">{activeAgent.name}</h3>
+                            <p className="mt-2 text-sm font-medium text-white/55">{activeAgent.role}</p>
+                            <p className="mt-5 text-base leading-7 text-white/80">{activeAgent.detail}</p>
+                            <p className="mt-6 text-xs text-white/40">
+                                Tip: hover desktop cards or tap on mobile to explore each role.
+                            </p>
+                        </motion.aside>
+                    </AnimatePresence>
                 </div>
             </div>
         </section>
