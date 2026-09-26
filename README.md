@@ -41,7 +41,7 @@ Planning a trip usually means jumping between multiple websites, tools, and spre
 - 🏨 **Hotel suggestions** via Tavily search
 - 🌤 **Weather lookup** via a custom MCP tool
 - 📝 **Structured itinerary generation** — a day-by-day plan, not just a list of options
-- 🌐 **FastAPI backend** with a React + Vite frontend
+- 🌐 **FastAPI backend** with a Next.js frontend
 - 💾 **Conversation state persistence** using PostgreSQL
 - ⚡ **LLM-powered responses** via OpenAI models
 
@@ -50,7 +50,7 @@ Planning a trip usually means jumping between multiple websites, tools, and spre
 | Layer | Technology |
 |---|---|
 | **Backend** | Python 3.10+, FastAPI |
-| **Frontend** | React + Vite (`frontend/`) |
+| **Frontend** | Next.js App Router (`frontend/`) |
 | **Agent Orchestration** | LangGraph, LangChain |
 | **LLM** | OpenAI |
 | **Database** | PostgreSQL |
@@ -84,7 +84,7 @@ The main travel workflow in `backend.py` calls these helpers from the flight, ho
 ├── backend.py                   # LangGraph travel workflow
 ├── mcp_client.py                # MCP client and tool integration
 ├── custom_weather_mcp_server.py # Local weather MCP server
-├── frontend/                    # React + Vite frontend
+├── frontend/                    # Next.js frontend
 ├── static/                      # Legacy static assets
 ├── templates/                   # Legacy HTML templates
 ├── requirements.txt             # Python dependencies
@@ -134,10 +134,11 @@ Health check available at `http://127.0.0.1:8000/health`
 ```bash
 cd frontend
 npm install
-$env:VITE_API_BASE_URL="http://127.0.0.1:8000"
-npm run dev -- --host 0.0.0.0
+npm run dev
 ```
-Then open `http://localhost:5173`
+Then open `http://localhost:3000`
+
+For local backend access, configure `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000` in the frontend environment before starting Next.js.
 
 > The React UI is the redesigned frontend. The FastAPI backend remains the source of truth for the AI workflow.
 

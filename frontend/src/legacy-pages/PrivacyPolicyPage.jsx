@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { Seo } from '../components/Seo'
 
 export function PrivacyPolicyPage() {
@@ -58,10 +60,10 @@ export function PrivacyPolicyPage() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                    <Link to="/terms" className="btn-ink inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold">
+                    <Link href="/terms" className="btn-ink inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold">
                         Read terms
                     </Link>
-                    <Link to="/" className="inline-flex items-center rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]">
+                    <Link href="/" className="inline-flex items-center rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]">
                         Back home
                     </Link>
                 </div>

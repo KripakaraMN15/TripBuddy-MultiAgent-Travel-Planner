@@ -87,6 +87,10 @@ target/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/.next/
+
+# Local editor settings
+.vscode/
 
 # IPython
 profile_default/

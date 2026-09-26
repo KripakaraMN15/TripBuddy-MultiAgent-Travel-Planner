@@ -1,6 +1,6 @@
-# React + Vite
+# TripBuddy AI frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is the Next.js App Router frontend for TripBuddy AI. The existing FastAPI service remains the backend source of truth.
 
 Currently, two official plugins are available:
 

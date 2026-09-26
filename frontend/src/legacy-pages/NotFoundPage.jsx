@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { ArrowLeft, Compass } from 'lucide-react'
 import { Seo } from '../components/Seo'
 
@@ -24,14 +26,14 @@ export function NotFoundPage() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/"
+            href="/"
             className="btn-ink inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold"
           >
             <ArrowLeft className="h-4 w-4" />
             Back home
           </Link>
           <Link
-            to="/planner"
+            href="/planner"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)] transition hover:-translate-y-0.5"
           >
             Plan a trip

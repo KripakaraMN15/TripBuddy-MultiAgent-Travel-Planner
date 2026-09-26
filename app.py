@@ -1,4 +1,5 @@
 import os
+import asyncio
 from pathlib import Path
 import traceback
 from typing import Optional
@@ -12,12 +13,6 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from backend import run_travel_agent, resume_travel_agent
-
-# This is kept from the original project to allow the existing synchronous
-# agent functions to call async MCP helpers inside FastAPI.
-import nest_asyncio
-
-nest_asyncio.apply()
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -81,7 +76,9 @@ async def serve_static(file_path: str):
     try:
         file_full_path = file_full_path.resolve()
         static_dir = (BASE_DIR / "static").resolve()
-        if not str(file_full_path).startswith(str(static_dir)):
+        try:
+            file_full_path.relative_to(static_dir)
+        except ValueError:
             return JSONResponse(status_code=403, content={"error": "Access denied"})
     except Exception:
         return JSONResponse(status_code=400, content={"error": "Invalid path"})
@@ -112,8 +109,8 @@ async def serve_static(file_path: str):
         with open(file_full_path, "rb") as f:
             content = f.read()
         return Response(content=content, media_type=media_type, status_code=200)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": "Unable to read static file."})
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -151,7 +148,8 @@ async def travel_planner(request_data: TravelRequest):
                     },
                 )
 
-        result = run_travel_agent(
+        result = await asyncio.to_thread(
+            run_travel_agent,
             user_input=user_message,
             thread_id=thread_id,
         )
@@ -171,7 +169,7 @@ async def travel_planner(request_data: TravelRequest):
             status_code=500,
             content={
                 "success": False,
-                "error": str(exc),
+                "error": "Unable to generate a travel plan right now. Please try again.",
             },
         )
 
@@ -188,7 +186,8 @@ async def approve_travel_plan(request_data: ApprovalRequest):
                 },
             )
 
-        result = resume_travel_agent(
+        result = await asyncio.to_thread(
+            resume_travel_agent,
             thread_id=request_data.thread_id,
             approved=request_data.approved,
             feedback=request_data.feedback,
@@ -209,7 +208,7 @@ async def approve_travel_plan(request_data: ApprovalRequest):
             status_code=500,
             content={
                 "success": False,
-                "error": str(exc),
+                "error": "Unable to resume the travel plan right now. Please try again.",
             },
         )
 

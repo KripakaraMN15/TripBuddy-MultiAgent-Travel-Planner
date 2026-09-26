@@ -1,3 +1,7 @@
+'use client'
+
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { Hero } from '../components/landing/Hero'
 import { AgentNetwork } from '../components/landing/AgentNetwork'
 import { HowItWorks } from '../components/landing/HowItWorks'
@@ -5,8 +9,6 @@ import { TechnologySection } from '../components/landing/TechnologySection'
 import { TripPreview } from '../components/landing/TripPreview'
 import { Seo } from '../components/Seo'
 import { getSiteOrigin } from '../lib/seo'
-import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 export function LandingPage() {
     const origin = getSiteOrigin()
@@ -48,7 +50,7 @@ export function LandingPage() {
                         </h2>
                     </div>
                     <Link
-                        to="/planner"
+                        href="/planner"
                         className="btn-ink group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold"
                     >
                         Start planning

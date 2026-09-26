@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 export function Footer() {
     return (
@@ -26,7 +26,7 @@ export function Footer() {
                         </h3>
                         <ul className="space-y-2.5 text-sm text-white/70">
                             <li>
-                                <Link to="/planner" className="transition hover:text-white">
+                                <Link href="/planner" className="transition hover:text-white">
                                     Plan a trip
                                 </Link>
                             </li>
@@ -48,12 +48,12 @@ export function Footer() {
                         </h3>
                         <ul className="space-y-2.5 text-sm text-white/70">
                             <li>
-                                <Link to="/privacy-policy" className="transition hover:text-white">
+                                <Link href="/privacy-policy" className="transition hover:text-white">
                                     Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/terms" className="transition hover:text-white">
+                                <Link href="/terms" className="transition hover:text-white">
                                     Terms & Conditions
                                 </Link>
                             </li>

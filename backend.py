@@ -1,12 +1,9 @@
 import os 
 import asyncio
 import certifi
-import nest_asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
-
-nest_asyncio.apply()
 
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()

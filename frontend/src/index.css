@@ -172,10 +172,12 @@ textarea {
 }
 
 @keyframes float-soft {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-6px);
   }
@@ -186,6 +188,7 @@ textarea {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

@@ -1,9 +1,13 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from 'lucide-react'
 import { marked } from 'marked'
-import { useLocation } from 'react-router-dom'
+import sanitizeHtml from 'sanitize-html'
+import { useSearchParams } from 'next/navigation'
 import { Seo } from '../components/Seo'
+import { TripPlanningLoader } from '../components/planner/TripPlanningLoader'
 import { submitApproval, submitTravelRequest } from '../services/api'
 
 const starterPrompts = [
@@ -21,10 +25,10 @@ const AGENT_LABELS = {
 }
 
 export function PlannerPage() {
-    const location = useLocation()
+    const searchParams = useSearchParams()
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [threadId, setThreadId] = useState(() => localStorage.getItem('travel_thread_id') || '')
+    const [threadId, setThreadId] = useState('')
     const [workflow, setWorkflow] = useState(null)
     const [result, setResult] = useState('')
     const [resultTitle, setResultTitle] = useState('Draft Travel Plan')
@@ -37,11 +41,18 @@ export function PlannerPage() {
     const promptList = useMemo(() => starterPrompts, [])
 
     useEffect(() => {
-        const prompt = location.state?.prompt
+        const savedThreadId = window.localStorage.getItem('travel_thread_id')
+        if (savedThreadId) {
+            setThreadId(savedThreadId)
+        }
+    }, [])
+
+    useEffect(() => {
+        const prompt = searchParams.get('prompt')
         if (typeof prompt === 'string' && prompt.trim()) {
             setInput(prompt.trim())
         }
-    }, [location.state])
+    }, [searchParams])
 
     async function handleSubmit(event) {
         event.preventDefault()
@@ -262,8 +273,8 @@ export function PlannerPage() {
                                     </div>
                                     <span
                                         className={`rounded-full px-3 py-1 text-xs font-bold ${workflow.guardrail_allowed === false
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-emerald-100 text-emerald-700'
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-emerald-100 text-emerald-700'
                                             }`}
                                     >
                                         {workflow.guardrail_allowed === false ? 'Guardrail blocked' : 'Guardrail passed'}
@@ -317,12 +328,16 @@ export function PlannerPage() {
                                 )}
                             </div>
 
-                            <div
-                                className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
-                                dangerouslySetInnerHTML={{
-                                    __html: marked.parse(result || 'Your generated itinerary will appear here.'),
-                                }}
-                            />
+                            {isLoading ? (
+                                <TripPlanningLoader />
+                            ) : (
+                                <div
+                                    className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
+                                    dangerouslySetInnerHTML={{
+                                        __html: sanitizeHtml(marked.parse(result || 'Your generated itinerary will appear here.')),
+                                    }}
+                                />
+                            )}
                         </motion.div>
 
                         {showApproval && (

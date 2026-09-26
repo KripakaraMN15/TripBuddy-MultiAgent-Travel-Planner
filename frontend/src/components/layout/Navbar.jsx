@@ -1,4 +1,7 @@
-import { Link, NavLink, useLocation } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const navItems = [
     { label: 'Home', to: '/' },
@@ -8,7 +11,7 @@ const navItems = [
 ]
 
 export function Navbar() {
-    const { pathname } = useLocation()
+    const pathname = usePathname()
     const isHome = pathname === '/'
 
     return (
@@ -20,7 +23,7 @@ export function Navbar() {
             }
         >
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
-                <Link to="/" className="group flex items-center gap-2.5 text-[var(--ink)]">
+                <Link href="/" className="group flex items-center gap-2.5 text-[var(--ink)]">
                     <img
                         src="/logo.png"
                         alt="TripBuddy"
@@ -30,31 +33,35 @@ export function Navbar() {
                 </Link>
 
                 <nav className="hidden items-center gap-8 text-[13px] font-medium tracking-wide text-[var(--ink-soft)] md:flex">
-                    {navItems.map((item) =>
-                        item.to.startsWith('/#') ? (
-                            <a
+                    {navItems.map((item) => {
+                        const isActive = item.to !== '/#how-it-works' && item.to !== '/#ai-team' && pathname === item.to
+
+                        if (item.to.startsWith('/#')) {
+                            return (
+                                <a
+                                    key={item.label}
+                                    href={item.to}
+                                    className="transition-colors hover:text-[var(--ink)]"
+                                >
+                                    {item.label}
+                                </a>
+                            )
+                        }
+
+                        return (
+                            <Link
                                 key={item.label}
                                 href={item.to}
-                                className="transition-colors hover:text-[var(--ink)]"
+                                className={`transition-colors ${isActive ? 'text-[var(--ink)]' : 'hover:text-[var(--ink)]'}`}
                             >
                                 {item.label}
-                            </a>
-                        ) : (
-                            <NavLink
-                                key={item.label}
-                                to={item.to}
-                                className={({ isActive }) =>
-                                    `transition-colors ${isActive ? 'text-[var(--ink)]' : 'hover:text-[var(--ink)]'}`
-                                }
-                            >
-                                {item.label}
-                            </NavLink>
-                        ),
-                    )}
+                            </Link>
+                        )
+                    })}
                 </nav>
 
                 <Link
-                    to="/planner"
+                    href="/planner"
                     className="btn-ink hidden rounded-full px-5 py-2.5 text-[13px] font-semibold md:inline-flex"
                 >
                     Start planning

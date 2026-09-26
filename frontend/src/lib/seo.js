@@ -4,7 +4,7 @@ const DEFAULT_DESCRIPTION =
 const PRODUCTION_SITE_URL = 'https://tripbuddy-multiagent-travel-planner-1.onrender.com'
 
 function getSiteOrigin() {
-  const fromEnv = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '')
+  const fromEnv = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '')
   if (fromEnv) return fromEnv
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin.replace(/\/$/, '')

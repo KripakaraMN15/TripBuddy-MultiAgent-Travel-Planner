@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { Seo } from '../components/Seo'
 
 export function TermsPage() {
@@ -50,10 +52,10 @@ export function TermsPage() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                    <Link to="/privacy-policy" className="btn-ink inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold">
+                    <Link href="/privacy-policy" className="btn-ink inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold">
                         Privacy policy
                     </Link>
-                    <Link to="/" className="inline-flex items-center rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]">
+                    <Link href="/" className="inline-flex items-center rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]">
                         Back home
                     </Link>
                 </div>

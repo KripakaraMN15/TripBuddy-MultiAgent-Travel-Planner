@@ -1,7 +1,9 @@
-import { useState } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { CalendarDays, ChevronDown, Minus, Plus, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const workflowStages = [
     'Request',
@@ -14,14 +16,65 @@ const workflowStages = [
 ]
 
 export function Hero() {
-    const navigate = useNavigate()
-    const [query, setQuery] = useState('')
+    const router = useRouter()
+    const [origin, setOrigin] = useState('')
+    const [destination, setDestination] = useState('')
+    const [departureDate, setDepartureDate] = useState('')
+    const [returnDate, setReturnDate] = useState('')
+    const [travelers, setTravelers] = useState(2)
+    const [showTravelerPicker, setShowTravelerPicker] = useState(false)
+    const [error, setError] = useState('')
+    const [today, setToday] = useState('')
+
+    useEffect(() => {
+        setToday(new Date().toISOString().split('T')[0])
+    }, [])
 
     function handleSearch(event) {
         event.preventDefault()
-        navigate('/planner', {
-            state: { prompt: query.trim() },
-        })
+        const cleanOrigin = origin.trim()
+        const cleanDestination = destination.trim()
+        const currentDate = new Date().toISOString().split('T')[0]
+
+        if (!cleanOrigin || !cleanDestination || !departureDate || !returnDate) {
+            setError('Add your origin, destination, departure, and return dates.')
+            return
+        }
+
+        if (cleanOrigin.toLowerCase() === cleanDestination.toLowerCase()) {
+            setError('Origin and destination must be different.')
+            return
+        }
+
+        if (departureDate < currentDate) {
+            setError('Departure date cannot be in the past.')
+            return
+        }
+
+        if (returnDate < departureDate) {
+            setError('Return date must be on or after departure.')
+            return
+        }
+
+        if (travelers < 1) {
+            setError('Choose at least one traveler.')
+            return
+        }
+
+        const duration = Math.round(
+            (new Date(`${returnDate}T00:00:00Z`) - new Date(`${departureDate}T00:00:00Z`)) / 86400000,
+        )
+        const formatDate = (value) =>
+            new Intl.DateTimeFormat('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+                timeZone: 'UTC',
+            }).format(new Date(`${value}T00:00:00Z`))
+        const travelerLabel = `${travelers} ${travelers === 1 ? 'adult' : 'adults'}`
+        const prompt = `Plan a ${duration}-day trip from ${cleanOrigin} to ${cleanDestination} for ${travelerLabel}, from ${formatDate(departureDate)} to ${formatDate(returnDate)}.`
+
+        router.push(`/planner?prompt=${encodeURIComponent(prompt)}`)
     }
 
     return (
@@ -40,7 +93,7 @@ export function Hero() {
                 aria-hidden="true"
             />
 
-            <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-4xl flex-col items-center justify-center px-4 pb-28 pt-28 text-center sm:px-6 lg:px-8">
+            <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-5xl flex-col items-center justify-center px-4 pb-28 pt-28 text-center sm:px-6 lg:px-8">
                 <motion.h1
                     initial={{ opacity: 0, y: 22 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -55,7 +108,7 @@ export function Hero() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.75, ease: 'easeOut', delay: 0.16 }}
-                    className="mt-5 max-w-xl text-base leading-7 text-[var(--ink-soft)] sm:text-lg"
+                    className="mt-5 max-w-xl text-base leading-7 text-white sm:text-lg"
                 >
                     Feeling ready to explore? Tell TripBuddy where you want to go — our agents handle flights,
                     stays, weather, and your day-by-day plan.
@@ -66,23 +119,86 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: 'easeOut', delay: 0.24 }}
-                    className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-full border border-white/70 bg-white/90 p-1.5 pl-4 shadow-[0_18px_50px_rgba(40,30,20,0.16)] backdrop-blur-xl"
+                    className="mt-9 w-full max-w-4xl rounded-[28px] border border-white/75 bg-white/90 p-3 text-left shadow-[0_18px_50px_rgba(40,30,20,0.16)] backdrop-blur-xl sm:p-4"
                 >
-                    <Search className="h-4 w-4 shrink-0 text-[var(--muted)]" strokeWidth={1.8} />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search for a destination…"
-                        className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)] sm:text-[15px]"
-                        aria-label="Search for a destination"
-                    />
-                    <button
-                        type="submit"
-                        className="btn-ink shrink-0 rounded-full px-5 py-3 text-sm font-semibold"
-                    >
-                        Plan Now
-                    </button>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                        <label className="field-shell">
+                            <span className="field-label">From</span>
+                            <input
+                                type="text"
+                                value={origin}
+                                onChange={(event) => setOrigin(event.target.value)}
+                                placeholder="Bengaluru"
+                                className="field-input"
+                                autoComplete="address-level2"
+                            />
+                        </label>
+                        <label className="field-shell">
+                            <span className="field-label">Destination</span>
+                            <input
+                                type="text"
+                                value={destination}
+                                onChange={(event) => setDestination(event.target.value)}
+                                placeholder="Goa"
+                                className="field-input"
+                                autoComplete="off"
+                            />
+                        </label>
+                    </div>
+
+                    <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_0.9fr_auto]">
+                        <label className="field-shell">
+                            <span className="field-label flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Departure</span>
+                            <input
+                                type="date"
+                                value={departureDate}
+                                min={today || undefined}
+                                onChange={(event) => setDepartureDate(event.target.value)}
+                                className="field-input"
+                            />
+                        </label>
+                        <label className="field-shell">
+                            <span className="field-label flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Return</span>
+                            <input
+                                type="date"
+                                value={returnDate}
+                                min={departureDate || today || undefined}
+                                onChange={(event) => setReturnDate(event.target.value)}
+                                className="field-input"
+                            />
+                        </label>
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setShowTravelerPicker((visible) => !visible)}
+                                className="field-shell flex w-full cursor-pointer items-center justify-between text-left"
+                                aria-expanded={showTravelerPicker}
+                                aria-haspopup="dialog"
+                            >
+                                <span>
+                                    <span className="field-label flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />Travelers</span>
+                                    <span className="field-value">{travelers} {travelers === 1 ? 'Adult' : 'Adults'}</span>
+                                </span>
+                                <ChevronDown className={`h-4 w-4 text-[var(--muted)] transition-transform ${showTravelerPicker ? 'rotate-180' : ''}`} />
+                            </button>
+                            {showTravelerPicker && (
+                                <div className="absolute left-0 right-0 top-full z-20 mt-2 rounded-2xl border border-[var(--line)] bg-white p-3 shadow-[0_18px_40px_rgba(40,30,20,0.16)] sm:min-w-[190px]">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <span className="text-sm font-semibold text-[var(--ink)]">Adults</span>
+                                        <span className="flex items-center gap-2">
+                                            <button type="button" onClick={() => setTravelers((count) => Math.max(1, count - 1))} className="count-button" aria-label="Decrease adults"><Minus className="h-3.5 w-3.5" /></button>
+                                            <span className="w-5 text-center text-sm font-bold text-[var(--ink)]">{travelers}</span>
+                                            <button type="button" onClick={() => setTravelers((count) => count + 1)} className="count-button" aria-label="Increase adults"><Plus className="h-3.5 w-3.5" /></button>
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <button type="submit" className="btn-ink min-h-14 rounded-2xl px-6 text-sm font-semibold sm:rounded-full">
+                            Plan Now
+                        </button>
+                    </div>
+                    {error && <p className="mt-3 px-1 text-xs font-semibold text-[#a64b3c]" role="alert">{error}</p>}
                 </motion.form>
 
                 <motion.div

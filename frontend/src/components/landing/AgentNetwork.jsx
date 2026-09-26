@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Building2, CalendarDays, CloudSun, Network, Plane, Wallet } from 'lucide-react'
@@ -92,18 +94,16 @@ export function AgentNetwork() {
                                     onFocus={() => setActiveId(agent.id)}
                                     onClick={() => setActiveId(agent.id)}
                                     aria-pressed={isActive}
-                                    className={`group rounded-[26px] border p-5 text-left transition duration-300 ${
-                                        isActive
+                                    className={`group rounded-[26px] border p-5 text-left transition duration-300 ${isActive
                                             ? 'border-[var(--accent-soft)] bg-white shadow-[0_18px_48px_rgba(40,30,20,0.1)]'
                                             : 'border-[var(--line)] bg-white/70 hover:-translate-y-0.5 hover:border-[var(--accent-soft)]/60 hover:bg-white'
-                                    }`}
+                                        }`}
                                 >
                                     <div
-                                        className={`mb-4 flex h-11 w-11 items-center justify-center rounded-full ring-1 transition ${
-                                            isActive
+                                        className={`mb-4 flex h-11 w-11 items-center justify-center rounded-full ring-1 transition ${isActive
                                                 ? 'bg-[var(--accent)] text-white ring-[var(--accent)]'
                                                 : 'bg-[var(--sand)] text-[var(--ink)] ring-black/5 group-hover:bg-[var(--accent)] group-hover:text-white'
-                                        }`}
+                                            }`}
                                     >
                                         <Icon className="h-5 w-5" strokeWidth={1.7} />
                                     </div>

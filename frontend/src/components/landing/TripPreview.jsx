@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
 export function TripPreview() {
@@ -19,7 +19,7 @@ export function TripPreview() {
                             draft before you approve it.
                         </p>
                         <Link
-                            to="/planner"
+                            href="/planner"
                             className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)] transition hover:-translate-y-0.5"
                         >
                             Start planning

@@ -1,0 +1,349 @@
+@import 'tailwindcss';
+
+:root {
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --muted: #6b6560;
+    --sand: #f4efe8;
+    --sand-deep: #ebe3d8;
+    --mist: rgba(255, 252, 248, 0.72);
+    --glass: rgba(255, 255, 255, 0.78);
+    --accent: #b87a5a;
+    --accent-soft: #c99578;
+    --line: rgba(26, 26, 26, 0.08);
+    --shadow-soft: 0 20px 60px rgba(40, 30, 20, 0.12);
+    --font-sans: 'Manrope', system-ui, sans-serif;
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--ink);
+    background: var(--sand);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--sand);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+    font-family: inherit;
+}
+
+.font-serif {
+    font-family: var(--font-serif);
+}
+
+.font-display {
+    font-family: var(--font-serif);
+}
+
+.btn-ink {
+    background: linear-gradient(180deg, #2a2a2a 0%, #141414 100%);
+    color: #fff;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 28px rgba(20, 20, 20, 0.22);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.btn-ink:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 14px 32px rgba(20, 20, 20, 0.28);
+}
+
+.btn-ink:disabled {
+    opacity: 0.65;
+    transform: none;
+    filter: none;
+}
+
+.field-shell {
+    min-height: 4.25rem;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: rgba(255, 252, 248, 0.72);
+    padding: 0.7rem 0.85rem;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field-shell:focus-within {
+    border-color: rgba(184, 122, 90, 0.6);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(184, 122, 90, 0.1);
+}
+
+.field-label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.field-input,
+.field-value {
+    display: block;
+    width: 100%;
+    margin-top: 0.55rem;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.25;
+    outline: none;
+}
+
+.field-input::placeholder {
+    color: rgba(107, 101, 96, 0.7);
+}
+
+.count-button {
+    display: inline-flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-soft);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.count-button:hover {
+    background: var(--sand-deep);
+    color: var(--ink);
+}
+
+.trip-planning-loader {
+    min-height: 13rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 1.375rem;
+    background: rgba(244, 239, 232, 0.55);
+    padding: 1.5rem 1rem;
+    text-align: center;
+}
+
+.trip-route {
+    position: relative;
+    display: flex;
+    width: min(100%, 25rem);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trip-route-point {
+    position: relative;
+    z-index: 1;
+    display: block;
+    height: 0.55rem;
+    width: 0.55rem;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 0 0.3rem rgba(184, 122, 90, 0.12);
+}
+
+.trip-route-end {
+    animation: trip-route-pulse 2.8s ease-in-out infinite;
+}
+
+.trip-route-line {
+    position: absolute;
+    left: 0.3rem;
+    right: 0.3rem;
+    top: 50%;
+    height: 0;
+    border-top: 1px dashed rgba(184, 122, 90, 0.5);
+}
+
+.trip-route-plane {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: flex;
+    color: var(--accent);
+    transform: translate(-50%, -50%) rotate(10deg);
+    animation: trip-route-flight 4.8s ease-in-out infinite;
+}
+
+@keyframes trip-route-flight {
+
+    0%,
+    100% {
+        left: 12%;
+    }
+
+    50% {
+        left: 88%;
+    }
+}
+
+@keyframes trip-route-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0.3rem rgba(184, 122, 90, 0.12);
+    }
+
+    50% {
+        box-shadow: 0 0 0 0.55rem rgba(184, 122, 90, 0.04);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .trip-route-plane,
+    .trip-route-end {
+        animation: none;
+    }
+
+    .trip-route-plane {
+        left: 50%;
+    }
+}
+
+.glass-panel {
+    background: var(--glass);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: var(--shadow-soft);
+}
+
+.prose {
+    color: var(--ink-soft);
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+    color: var(--ink);
+    font-family: var(--font-serif);
+    letter-spacing: -0.02em;
+    margin-top: 0;
+}
+
+.prose p,
+.prose li,
+.prose ul,
+.prose ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.prose ul,
+.prose ol {
+    padding-left: 1.25rem;
+}
+
+.prose a {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.itinerary-content {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+}
+
+.itinerary-content h1,
+.itinerary-content h2,
+.itinerary-content h3,
+.itinerary-content h4,
+.itinerary-content h5,
+.itinerary-content h6 {
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.itinerary-content h1 {
+    font-size: 1.5rem;
+}
+
+.itinerary-content h2 {
+    font-size: 1.25rem;
+}
+
+.itinerary-content h3 {
+    font-size: 1.0625rem;
+}
+
+.itinerary-content h4,
+.itinerary-content h5,
+.itinerary-content h6 {
+    font-size: 0.9375rem;
+}
+
+.itinerary-content p,
+.itinerary-content li {
+    font-family: var(--font-sans);
+    font-weight: 500;
+}
+
+.itinerary-content strong,
+.itinerary-content b {
+    font-weight: 750;
+}
+
+@keyframes float-soft {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes fade-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-float-soft {
+    animation: float-soft 5.5s ease-in-out infinite;
+}
+
+.animate-fade-rise {
+    animation: fade-rise 0.8s ease-out both;
+}

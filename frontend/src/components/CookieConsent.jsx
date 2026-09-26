@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 
 const COOKIE_KEY = 'tripbuddy-cookie-consent'
