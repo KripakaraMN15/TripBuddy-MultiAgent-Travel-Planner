@@ -1,90 +1,151 @@
+const LOCAL_API_BASE = 'http://127.0.0.1:8000'
+
+// A full graph run can take a while on a cold start, so the ceiling is generous.
+const DEFAULT_TIMEOUT_MS = 180000
+
+const COLD_START_MESSAGE =
+    'Unable to reach the TripBuddy AI backend. On a free-tier host the server may be spinning up, which can take 30-60s on a cold start. If you are running locally, make sure app.py is serving on http://127.0.0.1:8000.'
+
+function isLocalhost() {
+    return (
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1')
+    )
+}
+
 function getApiBaseUrl() {
     if (process.env.NEXT_PUBLIC_API_BASE_URL) {
         return process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')
     }
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // Deployed: the static host and API share an origin.
+    if (typeof window !== 'undefined' && !isLocalhost()) {
         return window.location.origin.replace(/\/$/, '')
     }
-    return 'http://127.0.0.1:8000'
+    return LOCAL_API_BASE
+}
+
+async function fetchJson(url, options, timeoutMs) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+    // Let a caller-supplied signal cancel the request early without losing the
+    // timeout guarantee.
+    const externalSignal = options.signal
+    const forwardAbort = () => controller.abort()
+    if (externalSignal) {
+        if (externalSignal.aborted) {
+            controller.abort()
+        } else {
+            externalSignal.addEventListener('abort', forwardAbort, { once: true })
+        }
+    }
+
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal })
+        const data = await response.json().catch(() => ({}))
+        return { response, data }
+    } finally {
+        clearTimeout(timer)
+        if (externalSignal) {
+            externalSignal.removeEventListener('abort', forwardAbort)
+        }
+    }
 }
 
 async function request(path, options = {}) {
+    const { method = 'GET', body, timeoutMs = DEFAULT_TIMEOUT_MS } = options
     const primaryUrl = getApiBaseUrl()
-    const targetUrl = `${primaryUrl}${path}`
+
+    const init = {
+        method,
+        // Spread first so a caller-supplied headers object can override rather
+        // than be clobbered by the default Content-Type.
+        ...options,
+        headers: {
+            ...(body ? { 'Content-Type': 'application/json' } : {}),
+            Accept: 'application/json',
+            ...(options.headers || {}),
+        },
+    }
+    if (body !== undefined) {
+        init.body = body
+    }
 
     try {
-        const response = await fetch(targetUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...(options.headers || {}),
-            },
-            ...options,
-        })
-
-        const data = await response.json().catch(() => ({}))
+        const { response, data } = await fetchJson(
+            `${primaryUrl}${path}`,
+            init,
+            timeoutMs
+        )
 
         if (!response.ok || data.success === false) {
-            const errorMessage = data.error || 'Something went wrong while contacting the TripBuddy AI API.'
-            throw new Error(errorMessage)
+            throw new Error(
+                data.error || 'Something went wrong while contacting the TripBuddy AI API.'
+            )
         }
 
         return data
     } catch (err) {
-        // If on localhost and primaryUrl was external (e.g. Render production URL in env), try local fallback http://127.0.0.1:8000
+        // On localhost, an external base URL leaking in from .env is a common
+        // misconfiguration, so retry against the local backend once.
         if (
-            typeof window !== 'undefined' &&
-            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+            isLocalhost() &&
             !primaryUrl.includes('127.0.0.1') &&
-            !primaryUrl.includes('localhost')
+            !primaryUrl.includes('localhost') &&
+            !err.name?.startsWith('Abort')
         ) {
             try {
-                const fallbackUrl = `http://127.0.0.1:8000${path}`
-                const fallbackResponse = await fetch(fallbackUrl, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(options.headers || {}),
-                    },
-                    ...options,
-                })
-                const fallbackData = await fallbackResponse.json().catch(() => ({}))
-                if (fallbackResponse.ok && fallbackData.success !== false) {
-                    return fallbackData
+                const { response, data } = await fetchJson(
+                    `${LOCAL_API_BASE}${path}`,
+                    init,
+                    timeoutMs
+                )
+                if (response.ok && data.success !== false) {
+                    return data
                 }
-            } catch (fallbackErr) {
-                // Ignore fallback error
+            } catch {
+                // Fall through to the shared error handling below.
             }
         }
 
-        if (err.name === 'TypeError' || (err.message && err.message.includes('Failed to fetch'))) {
+        if (err.name === 'AbortError') {
             throw new Error(
-                'Unable to reach the TripBuddy AI backend. If using Render free tier, the backend server may be spinning up (takes 30-60s on cold start). If running locally, ensure app.py is running on http://127.0.0.1:8000.'
+                'The request timed out. Planning a trip can take a minute — please try again.'
             )
+        }
+        if (
+            err.name === 'TypeError' ||
+            (err.message && err.message.includes('Failed to fetch'))
+        ) {
+            throw new Error(COLD_START_MESSAGE)
         }
         throw err
     }
 }
 
-export async function submitTravelRequest(message, threadId = null) {
-    return request('/api/travel', {
-        method: 'POST',
-        body: JSON.stringify({
-            message,
-            thread_id: threadId || null,
-        }),
-    })
+export async function submitTravelRequest(message, threadId = null, options = {}) {
+    return request(
+        '/api/travel',
+        {
+            method: 'POST',
+            body: JSON.stringify({ message, thread_id: threadId || null }),
+            ...options,
+        }
+    )
 }
 
-export async function submitApproval(threadId, approved, feedback = '') {
-    return request('/api/travel/approve', {
-        method: 'POST',
-        body: JSON.stringify({
-            thread_id: threadId,
-            approved,
-            feedback,
-        }),
-    })
-}
-
-export async function checkHealth() {
-    return request('/health', { method: 'GET' })
+export async function submitApproval(threadId, approved, feedback = '', options = {}) {
+    return request(
+        '/api/travel/approve',
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                thread_id: threadId,
+                approved,
+                feedback,
+            }),
+            ...options,
+        }
+    )
 }

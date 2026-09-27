@@ -1,23 +1,28 @@
 import './globals.css'
-import { Providers } from './providers'
 import { Navbar } from '../src/components/layout/Navbar'
 import { Footer } from '../src/components/layout/Footer'
-import { CookieConsent } from '../src/components/CookieConsent'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tripbuddy-multiagent-travel-planner-1.onrender.com'
+const DESCRIPTION = 'Plan calmer trips with TripBuddy AI — a multi-agent travel planner for flights, hotels, weather, budgets, and reviewable itineraries.'
 
 export const metadata = {
+    // Set unconditionally so relative OG image URLs never resolve to localhost.
+    metadataBase: new URL(SITE_URL),
     title: 'TripBuddy AI',
-    description: 'Plan calmer trips with TripBuddy AI — a multi-agent travel planner for flights, hotels, weather, budgets, and reviewable itineraries.',
-    metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
+    description: DESCRIPTION,
     openGraph: {
         title: 'TripBuddy AI',
-        description: 'Plan calmer trips with TripBuddy AI — a multi-agent travel planner for flights, hotels, weather, budgets, and reviewable itineraries.',
+        description: DESCRIPTION,
         siteName: 'TripBuddy AI',
         type: 'website',
+        url: SITE_URL,
+        images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'TripBuddy AI' }],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'TripBuddy AI',
-        description: 'Plan calmer trips with TripBuddy AI — a multi-agent travel planner for flights, hotels, weather, budgets, and reviewable itineraries.',
+        description: DESCRIPTION,
+        images: ['/og-image.jpg'],
     },
 }
 
@@ -33,14 +38,11 @@ export default function RootLayout({ children }) {
                 />
             </head>
             <body>
-                <Providers>
-                    <div className="min-h-screen bg-[var(--sand)] text-[var(--ink)]">
-                        <Navbar />
-                        {children}
-                        <Footer />
-                        <CookieConsent />
-                    </div>
-                </Providers>
+                <div className="min-h-screen bg-[var(--sand)] text-[var(--ink)]">
+                    <Navbar />
+                    {children}
+                    <Footer />
+                </div>
             </body>
         </html>
     )

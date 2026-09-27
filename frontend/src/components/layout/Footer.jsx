@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HashLink } from './HashLink'
 
 export function Footer() {
     return (
@@ -31,14 +32,14 @@ export function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <a href="/#how-it-works" className="transition hover:text-white">
+                                <HashLink href="/#how-it-works" className="transition hover:text-white">
                                     How it works
-                                </a>
+                                </HashLink>
                             </li>
                             <li>
-                                <a href="/#ai-team" className="transition hover:text-white">
+                                <HashLink href="/#ai-team" className="transition hover:text-white">
                                     AI team
-                                </a>
+                                </HashLink>
                             </li>
                         </ul>
                     </div>

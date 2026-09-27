@@ -29,6 +29,17 @@ def _get_api_key() -> str:
     return OPENWEATHER_API_KEY
 
 
+def _redact(text: str) -> str:
+    """Strip the API key out of text before it is raised or logged.
+
+    The key travels in the `appid` query parameter, so any raw exception
+    message or response body that echoes the request URL would expose it.
+    """
+    if not OPENWEATHER_API_KEY:
+        return text
+    return text.replace(OPENWEATHER_API_KEY, "***")
+
+
 def _request_json(
     url: str,
     params: dict[str, Any],
@@ -47,22 +58,32 @@ def _request_json(
     except requests.RequestException as exc:
         details = ""
 
-        failed_response = getattr(
-            exc,
-            "response",
-            None,
-        )
-
+        failed_response = getattr(exc, "response", None)
         if failed_response is not None:
-            details = (
-                f" Response: "
-                f"{failed_response.text[:500]}"
-            )
+            details = f" Response: {failed_response.text[:500]}"
 
-        raise RuntimeError(
-            f"OpenWeather request failed: "
-            f"{exc}.{details}"
-        ) from exc
+        # requests embeds the full request URL — including the appid
+        # parameter — in the exception string, so redact before surfacing it.
+        message = f"OpenWeather request failed: {exc}.{details}"
+
+        raise RuntimeError(_redact(message)) from None
+
+
+def _require(data: dict[str, Any], *path: str) -> Any:
+    """Read a nested value, raising a readable error instead of a bare KeyError."""
+    current: Any = data
+    walked: list[str] = []
+
+    for key in path:
+        walked.append(key)
+        if not isinstance(current, dict) or key not in current:
+            raise RuntimeError(
+                "Unexpected OpenWeather response shape: missing "
+                f"{'.'.join(walked)}"
+            )
+        current = current[key]
+
+    return current
 
 
 @mcp.tool()
@@ -88,12 +109,12 @@ def get_current_weather(
     )
 
     return {
-        "city": data["name"],
-        "temperature_c": data["main"]["temp"],
-        "feels_like_c": data["main"]["feels_like"],
-        "humidity": data["main"]["humidity"],
-        "condition": data["weather"][0]["description"],
-        "wind_speed": data["wind"]["speed"],
+        "city": _require(data, "name"),
+        "temperature_c": _require(data, "main", "temp"),
+        "feels_like_c": _require(data, "main", "feels_like"),
+        "humidity": _require(data, "main", "humidity"),
+        "condition": _require(data, "weather")[0]["description"],
+        "wind_speed": _require(data, "wind", "speed"),
     }
 
 
@@ -122,23 +143,19 @@ def get_forecast(
         },
     )
 
-    forecast = [
-        {
-            "datetime": item["dt_txt"],
-            "temperature_c": item["main"]["temp"],
-            "condition": item["weather"][0]["description"],
-        }
-        for item in data.get("list", [])[:5]
-    ]
+    forecast = []
+    for item in data.get("list", [])[:5]:
+        weather = item.get("weather") or [{}]
+        forecast.append(
+            {
+                "datetime": item.get("dt_txt", ""),
+                "temperature_c": (item.get("main") or {}).get("temp"),
+                "condition": weather[0].get("description", ""),
+            }
+        )
 
     return {
-        "city": data.get(
-            "city",
-            {},
-        ).get(
-            "name",
-            city,
-        ),
+        "city": (data.get("city") or {}).get("name", city),
         "forecast": forecast,
     }
 

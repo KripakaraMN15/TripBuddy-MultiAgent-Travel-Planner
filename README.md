@@ -1,178 +1,242 @@
-<div align="center">
+# TripBuddy AI
 
-# ✈️ TripBuddy AI — Multi-Agent Travel Planner
+A multi-agent travel planner. A supervisor agent reads your trip request, calls
+the specialist agents that are actually needed (flights, hotels, weather,
+budget), and pauses for your review before producing the final plan.
 
-**An open-source AI travel planner that turns a natural-language trip request into a practical travel plan — flights, hotels, weather, and a day-by-day itinerary.**
-
-Built with a multi-agent workflow using LangGraph, LangChain, and FastAPI, with live data pulled in through MCP (Model Context Protocol).
-
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://tripbuddy-multiagent-travel-planner-1.onrender.com/)
-[![Python](https://img.shields.io/badge/Python%203.10+-3776AB?style=flat-square&logo=python&logoColor=white)](#)
-[![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=flat-square&logo=langchain&logoColor=white)](#)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](#)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)](#)
-
-</div>
+Built with **LangGraph**, **Model Context Protocol (MCP)**, **FastAPI**, and
+**Next.js**.
 
 ---
 
-## 🔗 Live App
+## Architecture
 
-**[tripbuddy-multiagent-travel-planner-1.onrender.com](https://tripbuddy-multiagent-travel-planner-1.onrender.com/)**
+```
+                        ┌──────────────┐
+   "Plan 7 days in  ───►│  supervisor  │  input guardrail + agent routing
+    Tokyo from Bengaluru│              │
+                        └──────┬───────┘
+                     guardrail  │  (sequential, whitelist-enforced)
+                     blocked    ▼
+                    ┌──────────────────────────────┐
+                    │ flight → hotel → weather →    │  each may be skipped
+                    │ budget                        │
+                    └──────────────┬───────────────┘
+                                   ▼
+                         ┌───────────────────┐
+                         │ itinerary_agent   │  integrates the results
+                         └─────────┬─────────┘
+                                   ▼
+                         ┌───────────────────┐
+                         │  human_approval   │  ⏸ graph interrupt
+                         └─────────┬─────────┘
+                          approve  │  revise + feedback
+                                   ▼
+                           ┌─────────────┐
+                           │ final_agent │────► final plan
+                           └─────────────┘
+```
 
-> ⚠️ Hosted on Render's free tier — the first request after a period of inactivity may take 30-60 seconds to wake the server up. This is normal, not a bug.
+Only agents the supervisor selects run, and they always run in the order above
+(`backend.py:AGENT_ORDER`), which also acts as a whitelist — the graph can never
+route to an unknown node, and a cycle is unreachable.
 
-## 🖥️ Why This Project
+### Agents
 
-Planning a trip usually means jumping between multiple websites, tools, and spreadsheets. TripBuddy brings that flow into one experience by coordinating a team of specialized agents:
+| Agent | Data source | Notes |
+| --- | --- | --- |
+| `supervisor_agent` | OpenAI | Input guardrail, then agent selection and constraint extraction. Fails open. |
+| `flight_agent` | AviationStack MCP | Resolves the origin/destination to IATA codes from the live airport catalogue, then looks up scheduled flights. |
+| `hotel_agent` | Tavily MCP | Web search for accommodation and neighbourhoods. |
+| `weather_agent` | OpenWeather MCP | Current conditions and a 5-day / 3-hour forecast. |
+| `budget_agent` | — | Feasibility analysis across the collected results. |
+| `itinerary_agent` | — | Produces the draft that you review. |
+| `final_agent` | — | Polishes the draft, applying your feedback. |
 
-- ✈️ a **flight-search agent**
-- 🏨 a **hotel-research agent**
-- 🌤 a **weather-lookup agent**
-- 🧠 an **itinerary-planning agent**
-- 📝 a **final response agent**
+Every specialist degrades gracefully: if a tool is unreachable, the agent states
+that the data is unavailable rather than failing the request, and the model is
+instructed to label estimates as estimates instead of inventing prices.
 
-— all orchestrated through a single LangGraph workflow with MCP-based tool integrations.
+---
 
-## ✨ Features
+## Project layout
 
-- 🧠 **Multi-agent orchestration** with LangGraph coordinating flight, hotel, weather, and itinerary agents
-- ✈️ **Flight research** via AviationStack
-- 🏨 **Hotel suggestions** via Tavily search
-- 🌤 **Weather lookup** via a custom MCP tool
-- 📝 **Structured itinerary generation** — a day-by-day plan, not just a list of options
-- 🌐 **FastAPI backend** with a Next.js frontend
-- 💾 **Conversation state persistence** using PostgreSQL
-- ⚡ **LLM-powered responses** via OpenAI models
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Backend** | Python 3.10+, FastAPI |
-| **Frontend** | Next.js App Router (`frontend/`) |
-| **Agent Orchestration** | LangGraph, LangChain |
-| **LLM** | OpenAI |
-| **Database** | PostgreSQL |
-| **Live Data** | Tavily API, AviationStack API, OpenWeather |
-| **Tool Protocol** | MCP (via `langchain-mcp-adapters` and `mcp`) |
-
-## 🔌 MCP Integration
-
-This project integrates MCP (Model Context Protocol) in three distinct ways — a nice reference point if you're exploring how MCP fits into a multi-agent system:
-
-| Integration | Type | Detail |
-|---|---|---|
-| **Tavily search** | Remote MCP | `https://mcp.tavily.com/mcp/` |
-| **AviationStack** | Local stdio MCP | `uvx aviationstack-mcp` |
-| **Weather** | Custom local MCP server | `custom_weather_mcp_server.py` |
-
-The MCP client (`mcp_client.py`) exposes async helper functions:
-- `tavily_mcp_search`
-- `aviation_mcp_call`
-- `weather_mcp_search`
-- `forecast_mcp_search`
-- `extract_destination`
-
-The main travel workflow in `backend.py` calls these helpers from the flight, hotel, and weather agents.
-
-## 📁 Project Structure
-
-```text
+```
 .
-├── app.py                       # FastAPI backend entry point
-├── backend.py                   # LangGraph travel workflow
-├── mcp_client.py                # MCP client and tool integration
-├── custom_weather_mcp_server.py # Local weather MCP server
-├── frontend/                    # Next.js frontend
-├── static/                      # Legacy static assets
-├── templates/                   # Legacy HTML templates
-├── requirements.txt             # Python dependencies
-├── .env.example                 # Example environment variables
-├── .env                         # Local secrets (not committed)
-└── tools/                       # Flight and web search integrations
+├── app.py                        FastAPI HTTP layer, CORS, rate limiting
+├── backend.py                    LangGraph state, agents, routing, checkpointer
+├── mcp_client.py                 MCP servers + Tavily / AviationStack / weather helpers
+├── custom_weather_mcp_server.py  Local stdio MCP server for OpenWeather
+├── requirements.txt
+├── Dockerfile                    Multi-stage, non-root, bakes in `uvx`
+├── templates/  static/           Minimal server-rendered fallback UI
+└── frontend/                     Next.js 15 static export
+    ├── app/                      App Router routes (export `metadata`)
+    ├── src/screens/              Page bodies
+    ├── src/components/           Landing, layout, planner components
+    ├── src/services/api.js       The only place that calls the backend
+    └── src/lib/                  metadata + hash-navigation helpers
 ```
 
-## ⚙️ Prerequisites
+---
 
-- Python 3.10 or newer
-- PostgreSQL running and accessible
-- API keys for OpenAI, Tavily, AviationStack, and OpenWeather
-- `uvx` available for local `aviationstack-mcp` usage (or adjust `mcp_client.py` accordingly)
+## Getting started
 
-## 🔑 Environment Variables
-
-Create a local `.env` file in the project root (use `.env.example` as a template):
-
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/travel_db
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4o-mini
-AVIATIONSTACK_API_KEY=your_aviationstack_api_key
-TAVILY_API_KEY=your_tavily_api_key
-OPENWEATHER_API_KEY=your_openweather_api_key
-DEFAULT_ORIGIN_IATA=BLR
-```
-
-## 🚀 Installation
+### 1. Backend
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # On Windows: .venv\Scripts\activate
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-## ▶️ Running the App
+The flight agent launches its MCP server through `uvx`, so install
+[uv](https://docs.astral.sh/uv/) and confirm `uvx --version` works.
 
-**Backend**
+### 2. Configure
+
+```bash
+cp .env.example .env
+```
+
+Then fill in:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | yes | Every LLM call |
+| `OPENAI_MODEL` | no | Defaults to `gpt-4o-mini` |
+| `TAVILY_API_KEY` | yes for hotels | Web search via the Tavily MCP server |
+| `AVIATION_STACK_API_KEY` | yes for flights | Airport and schedule data |
+| `OPENWEATHER_API_KEY` | yes for weather | Current conditions and forecast |
+| `DATABASE_URL` | no | Checkpoint store; omit to run fully in memory |
+| `SITE_URL` | no | Absolute URL used in `robots.txt` / `sitemap.xml` / `llms.txt` |
+| `EXTRA_ALLOWED_ORIGINS` | no | Extra CORS origins, comma-separated |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` | no | Per-client limit, default 10 per 5 min |
+| `TRUST_PROXY` | no | Set `true` only when a proxy sets `X-Forwarded-For` |
+| `FORCE_HTTPS` | no | Set `true` in production |
+
+Verify every tool server independently:
+
+```bash
+python mcp_client.py
+```
+
+Each server reports `OK` with its tool list, or `FAILED` with a reason — one
+broken server does not affect the others.
+
+### 3. Run
+
 ```bash
 python app.py
 ```
-Health check available at `http://127.0.0.1:8000/health`
 
-**Frontend** (in a second terminal)
+The API listens on `http://127.0.0.1:8000`. Interactive docs are at `/docs`.
+
+### 4. Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Then open `http://localhost:3000`
 
-For local backend access, configure `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000` in the frontend environment before starting Next.js.
+The site is at `http://localhost:3000` and proxies API calls to
+`http://127.0.0.1:8000` by default. To point at a deployed backend, set
+`NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.production`.
 
-> The React UI is the redesigned frontend. The FastAPI backend remains the source of truth for the AI workflow.
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Health check |
-| `POST` | `/api/travel` | Submit a travel request |
-
-**Example request:**
 ```bash
-curl -X POST http://127.0.0.1:8000/api/travel \
-  -H "Content-Type: application/json" \
-  -d '{"message":"Plan a 3-day trip to Tokyo with a budget of $1200"}'
+npm run build   # static export to frontend/dist/
+npm run start   # optional: serve dist/ locally to check the exported output
+npm run lint
 ```
 
-## 🔄 How the Workflow Works
-
-1. The user submits a travel request.
-2. The **flight agent** pulls live data via MCP-backed AviationStack.
-3. The **hotel agent** searches via remote Tavily MCP.
-4. The **weather agent** calls the custom weather MCP server.
-5. The **itinerary agent** assembles a practical, day-by-day travel plan.
-6. The **final response agent** returns the result through the web API.
-
-## 🙏 Acknowledgments
-
-Built with modern LLM tooling and real-world travel APIs, as a practical example of combining LangGraph agents with production-style, tool-augmented workflows.
+`npm run start` uses `serve dist` rather than `next start`, because `next start`
+does not work with an `output: 'export'` project.
 
 ---
 
-<div align="center">
+## API
 
-Built by [Kripakara M. N.](https://github.com/KripakaraMN15) · [LinkedIn](https://linkedin.com/in/kripakaramn)
+The planner is a two-step flow: the first call returns a **draft** that pauses
+for review, the second resumes the same graph thread.
 
-</div>
+### `POST /api/travel`
+
+```json
+{ "message": "Plan a 7-day Tokyo trip from Bengaluru", "thread_id": null }
+```
+
+Returns `success: true` plus `requires_approval: true` and the draft `itinerary`.
+Save the returned `thread_id`.
+
+### `POST /api/travel/approve`
+
+```json
+{ "thread_id": "user_…", "approved": true, "feedback": "" }
+```
+
+Rejects with a 400 when `approved` is `false` and `feedback` is empty. Returns
+the final plan.
+
+### `GET /health`
+
+Liveness probe. Returns `success`, `status`, and the feature list.
+
+### Other routes
+
+`/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/favicon.ico`, and a minimal
+server-rendered page at `/` for clients that do not run JavaScript.
+
+---
+
+## Deployment
+
+### Backend (Render Web Service / Docker)
+
+```bash
+docker build -t tripbuddy .
+docker run -p 8000:8000 --env-file .env tripbuddy
+```
+
+The image is multi-stage (build tools stay in the builder layer), runs as a
+non-root user, installs `uvx` for the AviationStack MCP server, excludes `.env`
+via `.dockerignore`, and honours `$PORT` with a `/health` healthcheck.
+
+### Frontend (Render Static Site)
+
+`npm run build` emits a fully static `frontend/dist/`. Configure the build
+command as `npm run build` and the publish directory as `dist`.
+
+### Checkpoint storage
+
+Set `DATABASE_URL` to keep in-progress drafts across restarts. Without it the
+app falls back to `MemorySaver`, which means a draft is lost whenever the
+server restarts — noticeable on a free-tier host that spins down when idle.
+
+---
+
+## Security notes
+
+- CORS uses an explicit origin allowlist. Do **not** add a wildcard or a broad
+  regex such as `https://.*\.onrender\.com` — that would let any tenant on the
+  platform make credentialed calls to the API.
+- `/api/travel` is rate limited per client because one request fans out to
+  several LLM calls plus MCP subprocesses. Put a real limiter at the edge if
+  you run more than one replica.
+- Tool output (Tavily search results, MCP payloads) is wrapped in explicit
+  `<TAG>` delimiters and flagged as untrusted data, and the model is told never
+  to follow instructions found inside it. This limits indirect prompt injection
+  from attacker-authored web content.
+- API keys in error messages are redacted before logging.
+- `.env` is excluded by both `.gitignore` and `.dockerignore`. Only
+  `.env.example` should ever be committed.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

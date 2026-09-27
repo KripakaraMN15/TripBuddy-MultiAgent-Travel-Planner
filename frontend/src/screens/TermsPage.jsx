@@ -1,17 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Seo } from '../components/Seo'
 
 export function TermsPage() {
     return (
         <main className="mx-auto max-w-4xl px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-            <Seo
-                title="Terms & Conditions"
-                description="Read the TripBuddy AI terms covering use of the travel planner, service limitations, and user responsibilities."
-                path="/terms"
-            />
-
             <article className="prose rounded-[32px] border border-[var(--line)] bg-white/80 p-6 shadow-[0_24px_80px_rgba(40,30,20,0.06)] backdrop-blur-xl sm:p-10">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">Legal</p>
                 <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[var(--ink)]">Terms & Conditions</h1>

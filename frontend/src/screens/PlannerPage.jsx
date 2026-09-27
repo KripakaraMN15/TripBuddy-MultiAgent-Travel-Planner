@@ -6,7 +6,6 @@ import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from '
 import { Marked } from 'marked'
 import sanitizeHtml from 'sanitize-html'
 import { useSearchParams } from 'next/navigation'
-import { Seo } from '../components/Seo'
 import { TripPlanningLoader } from '../components/planner/TripPlanningLoader'
 import { submitApproval, submitTravelRequest } from '../services/api'
 
@@ -30,38 +29,43 @@ const AGENT_LABELS = {
 
 export function PlannerPage() {
     const searchParams = useSearchParams()
-    const [input, setInput] = useState('')
+    const promptParam = searchParams.get('prompt')?.trim() || ''
+
+    const [input, setInput] = useState(promptParam)
     const [isLoading, setIsLoading] = useState(false)
     const [threadId, setThreadId] = useState('')
     const [workflow, setWorkflow] = useState(null)
     const [result, setResult] = useState('')
-    const [renderedHtml, setRenderedHtml] = useState('')
     const [resultTitle, setResultTitle] = useState('Draft Travel Plan')
     const [showApproval, setShowApproval] = useState(false)
     const [approvalRequest, setApprovalRequest] = useState('')
     const [approvalFeedback, setApprovalFeedback] = useState('')
     const [error, setError] = useState('')
     const [copied, setCopied] = useState(false)
+    const abortRef = useRef(null)
 
-    const autoSubmittedRef = useRef(false)
-    const promptList = useMemo(() => starterPrompts, [])
+    // Keep the textarea in step with the ?prompt= query param without an effect,
+    // so typing is never clobbered by a re-render.
+    const [lastPrompt, setLastPrompt] = useState(promptParam)
+    if (promptParam !== lastPrompt) {
+        setLastPrompt(promptParam)
+        setInput(promptParam)
+    }
 
-    // Convert markdown to sanitized HTML whenever result changes.
-    // Must be done in useEffect because marked.parse() is async in marked v5+.
-    useEffect(() => {
-        const text = result || 'Your generated itinerary will appear here.'
-        const raw = markedSync.parse(text)
-        setRenderedHtml(
-            sanitizeHtml(typeof raw === 'string' ? raw : String(raw), {
-                allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'img']),
-                allowedAttributes: {
-                    ...sanitizeHtml.defaults.allowedAttributes,
-                    '*': ['class'],
-                },
-            })
-        )
+    // markedSync.parse() is synchronous, so this needs no state or effect.
+    // Sanitising before injection is what keeps model output from becoming XSS.
+    const renderedHtml = useMemo(() => {
+        const raw = markedSync.parse(result || 'Your generated itinerary will appear here.')
+        return sanitizeHtml(typeof raw === 'string' ? raw : String(raw), {
+            allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'img']),
+            allowedAttributes: {
+                ...sanitizeHtml.defaults.allowedAttributes,
+                '*': ['class'],
+            },
+        })
     }, [result])
 
+    // Restore a thread that is still awaiting review after a page refresh.
     useEffect(() => {
         const savedThreadId = window.localStorage.getItem('travel_thread_id')
         if (savedThreadId) {
@@ -69,9 +73,8 @@ export function PlannerPage() {
         }
     }, [])
 
-    const runPlanning = useCallback(async (textToSubmit) => {
-        const targetText = textToSubmit ?? input
-        const trimmed = targetText.trim()
+    const runPlanning = useCallback(async () => {
+        const trimmed = input.trim()
 
         if (!trimmed) {
             setError('Please enter your travel request first.')
@@ -91,16 +94,21 @@ export function PlannerPage() {
         setThreadId('')
         window.localStorage.removeItem('travel_thread_id')
 
+        const controller = new AbortController()
+        abortRef.current = controller
+
         setTimeout(() => {
             document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 50)
 
         try {
-            const response = await submitTravelRequest(trimmed, null)
+            const response = await submitTravelRequest(trimmed, null, {
+                signal: controller.signal,
+            })
 
             if (response.thread_id) {
                 setThreadId(response.thread_id)
-                localStorage.setItem('travel_thread_id', response.thread_id)
+                window.localStorage.setItem('travel_thread_id', response.thread_id)
             }
 
             setWorkflow({
@@ -122,21 +130,27 @@ export function PlannerPage() {
                 setShowApproval(false)
             }
         } catch (err) {
+            if (err.name === 'AbortError') {
+                return
+            }
             setError(
                 err.message ||
                 'Unable to reach the TripBuddy AI backend. If you are running locally, make sure the FastAPI server is running on http://127.0.0.1:8000.'
             )
         } finally {
+            if (abortRef.current === controller) {
+                abortRef.current = null
+            }
             setIsLoading(false)
         }
     }, [input])
 
+    // Abandon an in-flight request if the user navigates away.
     useEffect(() => {
-        const promptParam = searchParams.get('prompt')
-        if (typeof promptParam === 'string' && promptParam.trim()) {
-            setInput(promptParam.trim())
+        return () => {
+            abortRef.current?.abort()
         }
-    }, [searchParams])
+    }, [])
 
     async function handleSubmit(event) {
         event.preventDefault()
@@ -182,7 +196,8 @@ export function PlannerPage() {
     async function handleCopy() {
         if (!result) return
         try {
-            await navigator.clipboard.writeText(result.replace(/<[^>]*>/g, ''))
+            // `result` is raw markdown, so it is copied verbatim.
+            await navigator.clipboard.writeText(result)
             setCopied(true)
             window.setTimeout(() => setCopied(false), 1200)
         } catch {
@@ -192,22 +207,17 @@ export function PlannerPage() {
 
     function handleDownload() {
         if (!result) return
-        const blob = new Blob([result.replace(/<[^>]*>/g, '')], { type: 'text/plain;charset=utf-8' })
+        const blob = new Blob([result], { type: 'text/plain;charset=utf-8' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = 'trip-plan.txt'
+        link.download = 'trip-plan.md'
         link.click()
         URL.revokeObjectURL(url)
     }
 
     return (
         <main className="relative min-h-screen overflow-hidden px-4 pb-16 pt-28 sm:px-6 lg:px-8">
-            <Seo
-                title="Plan a trip"
-                description="Describe your trip and TripBuddy AI will research flights, hotels, weather, and budget before you approve a polished itinerary."
-                path="/planner"
-            />
             <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-cover bg-center opacity-30"
                 style={{ backgroundImage: "url('/hero-escape.jpg')" }}
@@ -266,7 +276,7 @@ export function PlannerPage() {
                                     Sample prompts
                                 </p>
                                 <div className="flex flex-wrap gap-2">
-                                    {promptList.map((prompt) => (
+                                    {starterPrompts.map((prompt) => (
                                         <button
                                             key={prompt}
                                             type="button"

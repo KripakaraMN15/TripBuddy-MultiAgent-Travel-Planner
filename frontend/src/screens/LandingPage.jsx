@@ -7,33 +7,16 @@ import { AgentNetwork } from '../components/landing/AgentNetwork'
 import { HowItWorks } from '../components/landing/HowItWorks'
 import { TechnologySection } from '../components/landing/TechnologySection'
 import { TripPreview } from '../components/landing/TripPreview'
-import { Seo } from '../components/Seo'
-import { getSiteOrigin } from '../lib/seo'
 
-export function LandingPage() {
-    const origin = getSiteOrigin()
-
+export function LandingPage({ jsonLd }) {
     return (
         <main className="bg-[var(--sand)] text-[var(--ink)]">
-            <Seo
-                title="TripBuddy AI"
-                description="Plan calmer trips with TripBuddy AI — a multi-agent travel planner for flights, hotels, weather, budgets, and reviewable itineraries."
-                path="/"
-                jsonLd={{
-                    '@context': 'https://schema.org',
-                    '@type': 'WebApplication',
-                    name: 'TripBuddy AI',
-                    url: origin || undefined,
-                    applicationCategory: 'TravelApplication',
-                    description:
-                        'A multi-agent travel planner that coordinates flights, hotels, weather, budgets, and itineraries with human review.',
-                    offers: {
-                        '@type': 'Offer',
-                        price: '0',
-                        priceCurrency: 'USD',
-                    },
-                }}
-            />
+            {jsonLd && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+            )}
             <Hero />
             <AgentNetwork />
             <HowItWorks />

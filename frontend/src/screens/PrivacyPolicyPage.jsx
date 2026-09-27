@@ -1,17 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Seo } from '../components/Seo'
 
 export function PrivacyPolicyPage() {
     return (
         <main className="mx-auto max-w-4xl px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-            <Seo
-                title="Privacy Policy"
-                description="Learn how TripBuddy AI handles travel requests, usage data, and cookies."
-                path="/privacy-policy"
-            />
-
             <article className="prose rounded-[32px] border border-[var(--line)] bg-white/80 p-6 shadow-[0_24px_80px_rgba(40,30,20,0.06)] backdrop-blur-xl sm:p-10">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">Legal</p>
                 <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.04em] text-[var(--ink)]">Privacy Policy</h1>
@@ -26,7 +19,7 @@ export function PrivacyPolicyPage() {
                     <li>Trip details you enter in the planner.</li>
                     <li>Thread identifiers used to continue a planning session.</li>
                     <li>Basic browser metadata necessary to keep the site running.</li>
-                    <li>Cookies used to remember consent and improve continuity.</li>
+                    <li>Local browser storage that remembers your latest trip thread. This site sets no cookies.</li>
                 </ul>
 
                 <h2>How we use it</h2>

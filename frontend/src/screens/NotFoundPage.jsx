@@ -2,17 +2,10 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Compass } from 'lucide-react'
-import { Seo } from '../components/Seo'
 
 export function NotFoundPage() {
   return (
     <main className="relative flex min-h-[70vh] items-center justify-center px-4 pb-16 pt-28 sm:px-6 lg:px-8">
-      <Seo
-        title="Page not found"
-        description="This TripBuddy page does not exist. Head home or open the trip planner to continue."
-        path="/404"
-      />
-
       <div className="mx-auto max-w-lg text-center">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/5">
           <Compass className="h-6 w-6 text-[var(--accent)]" strokeWidth={1.7} />

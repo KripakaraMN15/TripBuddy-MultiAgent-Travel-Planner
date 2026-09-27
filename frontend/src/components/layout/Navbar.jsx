@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useHashLink } from '../../lib/useHashLink'
 
 const navItems = [
     { label: 'Home', to: '/' },
@@ -12,6 +13,7 @@ const navItems = [
 
 export function Navbar() {
     const pathname = usePathname()
+    const handleHashLink = useHashLink()
     const isHome = pathname === '/'
 
     return (
@@ -34,19 +36,20 @@ export function Navbar() {
 
                 <nav className="hidden items-center gap-8 text-[13px] font-medium tracking-wide text-[var(--ink-soft)] md:flex">
                     {navItems.map((item) => {
-                        const isActive = item.to !== '/#how-it-works' && item.to !== '/#ai-team' && pathname === item.to
-
                         if (item.to.startsWith('/#')) {
                             return (
                                 <a
                                     key={item.label}
                                     href={item.to}
+                                    onClick={(event) => handleHashLink(event, item.to.slice(1))}
                                     className="transition-colors hover:text-[var(--ink)]"
                                 >
                                     {item.label}
                                 </a>
                             )
                         }
+
+                        const isActive = pathname === item.to
 
                         return (
                             <Link

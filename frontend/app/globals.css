@@ -6,7 +6,6 @@
     --muted: #6b6560;
     --sand: #f4efe8;
     --sand-deep: #ebe3d8;
-    --mist: rgba(255, 252, 248, 0.72);
     --glass: rgba(255, 255, 255, 0.78);
     --accent: #b87a5a;
     --accent-soft: #c99578;
@@ -46,10 +45,6 @@ textarea {
 }
 
 .font-serif {
-    font-family: var(--font-serif);
-}
-
-.font-display {
     font-family: var(--font-serif);
 }
 
@@ -223,13 +218,11 @@ textarea {
     .trip-route-plane {
         left: 50%;
     }
-}
 
-.glass-panel {
-    background: var(--glass);
-    backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow: var(--shadow-soft);
+    /* Smooth scrolling is motion too. */
+    html {
+        scroll-behavior: auto;
+    }
 }
 
 .prose {
@@ -314,36 +307,4 @@ textarea {
 .itinerary-content strong,
 .itinerary-content b {
     font-weight: 750;
-}
-
-@keyframes float-soft {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-6px);
-    }
-}
-
-@keyframes fade-rise {
-    from {
-        opacity: 0;
-        transform: translateY(18px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-float-soft {
-    animation: float-soft 5.5s ease-in-out infinite;
-}
-
-.animate-fade-rise {
-    animation: fade-rise 0.8s ease-out both;
 }
