@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from 'lucide-react'
 import { Marked } from 'marked'
@@ -43,6 +43,7 @@ export function PlannerPage() {
     const [error, setError] = useState('')
     const [copied, setCopied] = useState(false)
 
+    const autoSubmittedRef = useRef(false)
     const promptList = useMemo(() => starterPrompts, [])
 
     // Convert markdown to sanitized HTML whenever result changes.
@@ -68,18 +69,10 @@ export function PlannerPage() {
         }
     }, [])
 
-    useEffect(() => {
-        const prompt = searchParams.get('prompt')
-        if (typeof prompt === 'string' && prompt.trim()) {
-            setInput(prompt.trim())
-        }
-    }, [searchParams])
+    const runPlanning = useCallback(async (textToSubmit) => {
+        const targetText = textToSubmit ?? input
+        const trimmed = targetText.trim()
 
-    async function handleSubmit(event) {
-        event.preventDefault()
-        setError('')
-
-        const trimmed = input.trim()
         if (!trimmed) {
             setError('Please enter your travel request first.')
             return
@@ -90,10 +83,12 @@ export function PlannerPage() {
             return
         }
 
+        setError('')
         setIsLoading(true)
 
         try {
-            const response = await submitTravelRequest(trimmed, threadId || null)
+            const currentThreadId = window.localStorage.getItem('travel_thread_id') || threadId || null
+            const response = await submitTravelRequest(trimmed, currentThreadId)
 
             if (response.thread_id) {
                 setThreadId(response.thread_id)
@@ -126,6 +121,25 @@ export function PlannerPage() {
         } finally {
             setIsLoading(false)
         }
+    }, [input, threadId])
+
+    useEffect(() => {
+        const promptParam = searchParams.get('prompt')
+        if (typeof promptParam === 'string' && promptParam.trim()) {
+            const trimmedPrompt = promptParam.trim()
+            setInput(trimmedPrompt)
+
+            const autoSubmit = searchParams.get('autoSubmit') !== 'false'
+            if (autoSubmit && !autoSubmittedRef.current) {
+                autoSubmittedRef.current = true
+                runPlanning(trimmedPrompt)
+            }
+        }
+    }, [searchParams, runPlanning])
+
+    async function handleSubmit(event) {
+        event.preventDefault()
+        await runPlanning()
     }
 
     async function handleApproval(approved) {

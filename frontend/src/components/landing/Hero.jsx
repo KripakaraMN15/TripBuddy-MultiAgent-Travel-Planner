@@ -32,49 +32,59 @@ export function Hero() {
 
     function handleSearch(event) {
         event.preventDefault()
+        setError('')
+
         const cleanOrigin = origin.trim()
         const cleanDestination = destination.trim()
         const currentDate = new Date().toISOString().split('T')[0]
 
-        if (!cleanOrigin || !cleanDestination || !departureDate || !returnDate) {
-            setError('Add your origin, destination, departure, and return dates.')
-            return
-        }
-
-        if (cleanOrigin.toLowerCase() === cleanDestination.toLowerCase()) {
+        if (cleanOrigin && cleanDestination && cleanOrigin.toLowerCase() === cleanDestination.toLowerCase()) {
             setError('Origin and destination must be different.')
             return
         }
 
-        if (departureDate < currentDate) {
+        if (departureDate && departureDate < currentDate) {
             setError('Departure date cannot be in the past.')
             return
         }
 
-        if (returnDate < departureDate) {
+        if (departureDate && returnDate && returnDate < departureDate) {
             setError('Return date must be on or after departure.')
             return
         }
 
-        if (travelers < 1) {
-            setError('Choose at least one traveler.')
-            return
+        const travelerLabel = `${travelers} ${travelers === 1 ? 'adult' : 'adults'}`
+        let prompt = ''
+
+        if (cleanOrigin && cleanDestination && departureDate && returnDate) {
+            const duration = Math.max(
+                1,
+                Math.round(
+                    (new Date(`${returnDate}T00:00:00Z`) - new Date(`${departureDate}T00:00:00Z`)) / 86400000,
+                ),
+            )
+            const formatDate = (value) =>
+                new Intl.DateTimeFormat('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    timeZone: 'UTC',
+                }).format(new Date(`${value}T00:00:00Z`))
+
+            prompt = `Plan a ${duration}-day trip from ${cleanOrigin} to ${cleanDestination} for ${travelerLabel}, from ${formatDate(departureDate)} to ${formatDate(returnDate)}.`
+        } else if (cleanOrigin && cleanDestination) {
+            prompt = `Plan a trip from ${cleanOrigin} to ${cleanDestination} for ${travelerLabel}.`
+        } else if (cleanDestination) {
+            prompt = `Plan a trip to ${cleanDestination} for ${travelerLabel}.`
+        } else if (cleanOrigin) {
+            prompt = `Plan a trip starting from ${cleanOrigin} for ${travelerLabel}.`
         }
 
-        const duration = Math.round(
-            (new Date(`${returnDate}T00:00:00Z`) - new Date(`${departureDate}T00:00:00Z`)) / 86400000,
-        )
-        const formatDate = (value) =>
-            new Intl.DateTimeFormat('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                timeZone: 'UTC',
-            }).format(new Date(`${value}T00:00:00Z`))
-        const travelerLabel = `${travelers} ${travelers === 1 ? 'adult' : 'adults'}`
-        const prompt = `Plan a ${duration}-day trip from ${cleanOrigin} to ${cleanDestination} for ${travelerLabel}, from ${formatDate(departureDate)} to ${formatDate(returnDate)}.`
-
-        router.push(`/planner?prompt=${encodeURIComponent(prompt)}`)
+        if (prompt) {
+            router.push(`/planner?prompt=${encodeURIComponent(prompt)}&autoSubmit=true`)
+        } else {
+            router.push('/planner')
+        }
     }
 
     return (
