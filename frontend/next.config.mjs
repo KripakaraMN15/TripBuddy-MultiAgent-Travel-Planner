@@ -14,6 +14,12 @@ const nextConfig = {
     output: 'export',
     distDir: isDev ? '.next' : 'dist',
 
+    // Emit planner/index.html instead of planner.html. A flat export leaves
+    // every internal link to /planner resolving to the home page, because the
+    // static host looks for a directory and falls back to index.html. With
+    // trailing slashes the route is a real directory on any static host.
+    trailingSlash: true,
+
     reactStrictMode: true,
 
     // Pin the trace root to this app. Without it Next walks up looking for a

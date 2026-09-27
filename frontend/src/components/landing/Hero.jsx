@@ -80,10 +80,14 @@ export function Hero() {
             prompt = `Plan a trip starting from ${cleanOrigin} for ${travelerLabel}.`
         }
 
+        // Trailing slash matters here in a way it does not for <Link>, which
+        // Next rewrites automatically. router.push sets the address bar
+        // verbatim, so an extensionless /planner would be what a refresh (or a
+        // shared link) hits, and the static host serves that as the home page.
         if (prompt) {
-            router.push(`/planner?prompt=${encodeURIComponent(prompt)}`)
+            router.push(`/planner/?prompt=${encodeURIComponent(prompt)}`)
         } else {
-            router.push('/planner')
+            router.push('/planner/')
         }
     }
 
