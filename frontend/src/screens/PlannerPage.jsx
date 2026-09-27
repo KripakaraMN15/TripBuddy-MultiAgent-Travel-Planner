@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from 'lucide-react'
 import { Marked } from 'marked'
 import sanitizeHtml from 'sanitize-html'
-import { useSearchParams } from 'next/navigation'
 import { TripPlanningLoader } from '../components/planner/TripPlanningLoader'
 import { checkThreadState, submitApproval, submitTravelRequest } from '../services/api'
 
@@ -28,8 +27,21 @@ const AGENT_LABELS = {
 }
 
 export function PlannerPage() {
-    const searchParams = useSearchParams()
-    const promptParam = searchParams.get('prompt')?.trim() || ''
+    // The ?prompt= value is read after mount rather than through
+    // useSearchParams(). That hook forces Next.js to bail out of static
+    // prerendering for this whole subtree, and the enclosing Suspense fallback
+    // is null, so the exported planner.html shipped an empty <main> that only
+    // appeared once JavaScript hydrated. Reading window.location.search in an
+    // effect keeps the first client render identical to the prerendered HTML
+    // (no hydration mismatch) while still filling the field on arrival.
+    const [promptParam, setPromptParam] = useState('')
+
+    useEffect(() => {
+        const fromUrl = new URLSearchParams(window.location.search).get('prompt')?.trim() || ''
+        if (fromUrl) {
+            setPromptParam(fromUrl)
+        }
+    }, [])
 
     const [input, setInput] = useState(promptParam)
     const [isLoading, setIsLoading] = useState(false)

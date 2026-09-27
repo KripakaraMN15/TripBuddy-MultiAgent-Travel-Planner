@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/set-api-base.mjs",
+    "build": "next build && node scripts/set-api-base.mjs && node scripts/check-planner-export.mjs",
     "start": "serve dist --no-clipboard",
-    "lint": "oxlint --ignore-pattern .next/** --ignore-pattern dist/** --ignore-pattern node_modules/**"
+    "lint": "oxlint --ignore-pattern .next/** --ignore-pattern dist/** --ignore-pattern node_modules/**",
+    "check:export": "node scripts/check-planner-export.mjs"
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.15.1",

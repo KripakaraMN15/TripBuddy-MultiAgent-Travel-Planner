@@ -9,14 +9,13 @@
  * editing a file on the host (or by setting API_BASE_URL for the build) without
  * a full Next build.
  *
- * Priority: API_BASE_URL env var > existing meta tag > bundled default.
+ * Priority: API_BASE_URL env var, otherwise leave the build's own value alone.
  */
 import { readFile, writeFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
 const DIST = path.join(process.cwd(), 'dist')
-const DEFAULT_API_BASE = 'https://tripbuddy-multiagent-travel-planner.onrender.com'
 
 function normalize(url) {
     return url.trim().replace(/\/+$/, '')
