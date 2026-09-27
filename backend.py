@@ -800,6 +800,7 @@ def _build_checkpointer():
             database_url,
             autocommit=True,
             row_factory=dict_row,
+            connect_timeout=3,
         )
         checkpointer = PostgresSaver(_conn)
         checkpointer.setup()
