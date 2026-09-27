@@ -88,14 +88,15 @@ export function PlannerPage() {
         setWorkflow(null)
         setResult('')
         setShowApproval(false)
+        setThreadId('')
+        window.localStorage.removeItem('travel_thread_id')
 
         setTimeout(() => {
             document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 50)
 
         try {
-            const currentThreadId = window.localStorage.getItem('travel_thread_id') || threadId || null
-            const response = await submitTravelRequest(trimmed, currentThreadId)
+            const response = await submitTravelRequest(trimmed, null)
 
             if (response.thread_id) {
                 setThreadId(response.thread_id)
@@ -128,7 +129,7 @@ export function PlannerPage() {
         } finally {
             setIsLoading(false)
         }
-    }, [input, threadId])
+    }, [input])
 
     useEffect(() => {
         const promptParam = searchParams.get('prompt')
@@ -308,7 +309,7 @@ export function PlannerPage() {
                             </motion.div>
                         ) : (
                             <>
-                                {workflow && (
+                                {workflow && result && (
                                     <motion.div
                                         id="workflow"
                                         initial={{ opacity: 0, y: 12 }}
