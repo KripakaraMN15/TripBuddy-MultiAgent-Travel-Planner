@@ -85,6 +85,13 @@ export function PlannerPage() {
 
         setError('')
         setIsLoading(true)
+        setWorkflow(null)
+        setResult('')
+        setShowApproval(false)
+
+        setTimeout(() => {
+            document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 50)
 
         try {
             const currentThreadId = window.localStorage.getItem('travel_thread_id') || threadId || null
@@ -148,6 +155,10 @@ export function PlannerPage() {
 
         setIsLoading(true)
         setError('')
+
+        setTimeout(() => {
+            document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 50)
 
         try {
             const response = await submitApproval(threadId, approved, approvalFeedback)
