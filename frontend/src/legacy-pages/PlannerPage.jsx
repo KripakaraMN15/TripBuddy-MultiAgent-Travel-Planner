@@ -297,88 +297,97 @@ export function PlannerPage() {
                     </section>
 
                     <section className="space-y-6">
-                        {workflow && (
+                        {isLoading ? (
                             <motion.div
-                                id="workflow"
+                                id="result"
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
                             >
-                                <div className="mb-4 flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                                            Workflow
-                                        </p>
-                                        <h3 className="mt-2 font-serif text-3xl italic text-[var(--ink)]">
-                                            Supervisor reasoning
-                                        </h3>
-                                    </div>
-                                    <span
-                                        className={`rounded-full px-3 py-1 text-xs font-bold ${workflow.guardrail_allowed === false
-                                            ? 'bg-red-100 text-red-700'
-                                            : 'bg-emerald-100 text-emerald-700'
-                                            }`}
-                                    >
-                                        {workflow.guardrail_allowed === false ? 'Guardrail blocked' : 'Guardrail passed'}
-                                    </span>
-                                </div>
-
-                                <p className="rounded-2xl bg-[var(--sand)]/70 p-4 text-sm leading-6 text-[var(--ink-soft)]">
-                                    {workflow.supervisor_reasoning}
-                                </p>
-
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    {(workflow.selected_agents || []).map((agent) => (
-                                        <span
-                                            key={agent}
-                                            className="rounded-full border border-[var(--line)] bg-white px-2.5 py-1.5 text-xs font-bold text-[var(--ink-soft)]"
-                                        >
-                                            {AGENT_LABELS[agent] || agent}
-                                        </span>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-
-                        <motion.div
-                            id="result"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
-                        >
-                            <div className="mb-4 flex items-center justify-between gap-3">
-                                <h3 className="font-serif text-3xl italic text-[var(--ink)]">{resultTitle}</h3>
-                                {result && (
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleCopy}
-                                            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
-                                        >
-                                            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                                            {copied ? 'Copied' : 'Copy'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleDownload}
-                                            className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
-                                        >
-                                            <Download className="h-3.5 w-3.5" />
-                                            Download
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {isLoading ? (
                                 <TripPlanningLoader />
-                            ) : (
-                                <div
-                                    className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
-                                    dangerouslySetInnerHTML={{ __html: renderedHtml }}
-                                />
-                            )}
-                        </motion.div>
+                            </motion.div>
+                        ) : (
+                            <>
+                                {workflow && (
+                                    <motion.div
+                                        id="workflow"
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
+                                    >
+                                        <div className="mb-4 flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                                                    Workflow
+                                                </p>
+                                                <h3 className="mt-2 font-serif text-3xl italic text-[var(--ink)]">
+                                                    Supervisor reasoning
+                                                </h3>
+                                            </div>
+                                            <span
+                                                className={`rounded-full px-3 py-1 text-xs font-bold ${workflow.guardrail_allowed === false
+                                                    ? 'bg-red-100 text-red-700'
+                                                    : 'bg-emerald-100 text-emerald-700'
+                                                    }`}
+                                            >
+                                                {workflow.guardrail_allowed === false ? 'Guardrail blocked' : 'Guardrail passed'}
+                                            </span>
+                                        </div>
+
+                                        <p className="rounded-2xl bg-[var(--sand)]/70 p-4 text-sm leading-6 text-[var(--ink-soft)]">
+                                            {workflow.supervisor_reasoning}
+                                        </p>
+
+                                        <div className="mt-5 flex flex-wrap gap-2">
+                                            {(workflow.selected_agents || []).map((agent) => (
+                                                <span
+                                                    key={agent}
+                                                    className="rounded-full border border-[var(--line)] bg-white px-2.5 py-1.5 text-xs font-bold text-[var(--ink-soft)]"
+                                                >
+                                                    {AGENT_LABELS[agent] || agent}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                <motion.div
+                                    id="result"
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_60px_rgba(40,30,20,0.08)] backdrop-blur-xl sm:p-6"
+                                >
+                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                        <h3 className="font-serif text-3xl italic text-[var(--ink)]">{resultTitle}</h3>
+                                        {result && (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCopy}
+                                                    className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
+                                                >
+                                                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                                                    {copied ? 'Copied' : 'Copy'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDownload}
+                                                    className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink-soft)]"
+                                                >
+                                                    <Download className="h-3.5 w-3.5" />
+                                                    Download
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div
+                                        className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
+                                        dangerouslySetInnerHTML={{ __html: renderedHtml }}
+                                    />
+                                </motion.div>
+                            </>
+                        )}
 
                         {showApproval && (
                             <motion.div
