@@ -169,12 +169,14 @@ for (const route of ROUTES) {
     check(`/sitemap lists /${route}/`, locs.some((u) => new URL(u).pathname === `/${route}/`))
 }
 
-console.log('\n=== extensionless routes redirect ===')
-const redirects = await readFile(path.join(dist, '_redirects'), 'utf8').catch(() => '')
-check('_redirects shipped', redirects.length > 0)
-for (const route of ROUTES) {
-    const rule = new RegExp(`^/${route}\\s+/${route}/\\s+301$`, 'm')
-    check(`/${route} -> /${route}/ 301`, rule.test(redirects))
+console.log('\n=== canonical URLs are self-consistent ===')
+for (const route of ['', ...ROUTES]) {
+    const file = await routeFile(route)
+    if (!file) continue
+    const raw = await readFile(file, 'utf8')
+    const canon = raw.match(/<link rel="canonical" href="([^"]*)"/)?.[1]
+    const expected = route ? `/${route}/` : '/'
+    check(`/${route} canonical ends with ${expected}`, Boolean(canon) && new URL(canon).pathname === expected, canon || 'missing')
 }
 
 console.log(`\nRESULT: ${ok ? 'ALL PASS' : 'SOME FAILURES'}`)

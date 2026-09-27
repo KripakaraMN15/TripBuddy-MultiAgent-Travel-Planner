@@ -53,17 +53,60 @@ routes.
 
 ## Talking to the backend
 
+The static site and the API are **separate** services:
+
+- site — `https://tripbuddy-multiagent-travel-planner-1.onrender.com`
+- API — `https://tripbuddy-multiagent-travel-planner.onrender.com`
+
 `src/services/api.js` resolves the base URL in this order:
 
-1. `NEXT_PUBLIC_API_BASE_URL`
-2. `window.location.origin` (when not on localhost — the static host and API
-   share an origin in production)
-3. `http://127.0.0.1:8000` for local development
+1. `http://127.0.0.1:8000` on localhost, so local dev never leaves the machine
+2. the `<meta name="api-base-url">` tag emitted by `app/layout.js`
+3. the known API service as a fallback
+
+It never falls back to `window.location.origin`. An earlier version did, and
+that was the production bug: the static host answers `/api/travel` with the
+exported HTML, so `response.json()` produced `{}`, the success check passed,
+and the planner rendered an empty plan with no error. A non-JSON response is
+now rejected outright, and a base equal to the page origin is refused, so the
+failure can no longer be silent.
+
+Next inlines `NEXT_PUBLIC_*` at build time, which is why the value is also
+emitted as a meta tag: `scripts/set-api-base.mjs` can rewrite it in the built
+HTML afterwards, so a deployed site can be repointed without a full rebuild.
 
 Requests carry a timeout via `AbortController`, and the planner aborts an
 in-flight request if you navigate away.
 
+## Routes and URLs
+
+`trailingSlash: true` is required, and not cosmetic. The build emits
+`planner/index.html` rather than a flat `planner.html`, because a static host
+resolves a URL against the filesystem: a request for the extensionless
+`/planner` finds no matching file and falls back to `index.html`, which
+silently renders the home page.
+
+Consequences to keep in mind:
+
+- `/planner/` is canonical. Every `<Link>` is rewritten to it automatically.
+- `router.push` is **not** rewritten, so any programmatic navigation must
+  include the trailing slash or a refresh breaks. `npm run build` fails the
+  build if one does not.
+- Render's static host does not honour a `_redirects` file, and does not
+  redirect `/planner` to `/planner/`. The extensionless URL keeps serving the
+  home page. Use the canonical trailing-slash form in links and docs.
+- Canonical tags, `og:url`, and `public/sitemap.xml` all use the trailing
+  slash, and the export check asserts they stay consistent.
+
+`scripts/check-planner-export.mjs` runs as part of `npm run build` and fails it
+if the planner page stops being prerendered, if a route is emitted as a flat
+file, or if any canonical URL drifts from its route.
+
 ## Deploying
 
-Build command `npm run build`, publish directory `dist`. The API base URL is
-baked in at build time, so set `NEXT_PUBLIC_API_BASE_URL` before building.
+Build command `npm run build`, publish directory `dist`.
+
+Set `NEXT_PUBLIC_API_BASE_URL` to the **API** service URL, not the site URL. A
+value equal to the site URL is ignored in favour of the known API default, but
+setting it correctly avoids relying on that fallback.
+
