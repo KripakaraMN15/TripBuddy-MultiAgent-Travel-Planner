@@ -78,12 +78,22 @@ export function PlannerPage() {
 
         let cancelled = false
 
-        checkThreadState(savedThreadId).then((state) => {
+        async function verify() {
+            let state = await checkThreadState(savedThreadId)
+
+            // A cold backend can exceed the request timeout on the first try.
+            // One retry distinguishes a slow start from a genuinely lost
+            // thread, which matters because the two need opposite handling.
+            if (!state) {
+                await new Promise((resolve) => setTimeout(resolve, 2500))
+                state = await checkThreadState(savedThreadId)
+            }
+
             if (cancelled) {
                 return
             }
 
-            if (state?.exists) {
+            if (state?.awaiting_approval) {
                 setThreadId(savedThreadId)
                 setShowApproval(true)
                 setResultTitle('Draft Travel Plan')
@@ -96,9 +106,24 @@ export function PlannerPage() {
                 return
             }
 
-            // Dead id: drop it so the next run starts from a clean slate.
-            window.localStorage.removeItem('travel_thread_id')
-        })
+            if (state) {
+                // The backend answered, and the thread is not waiting for
+                // review: either it never existed or it was already approved.
+                // Either way there is nothing left to resume.
+                window.localStorage.removeItem('travel_thread_id')
+                return
+            }
+
+            // The backend could not be reached, so the thread's fate is
+            // unknown. Deleting the id here would throw away a draft that is
+            // still resumable, so it is kept and the approve path clears it
+            // if it turns out to be gone.
+            setError(
+                'Could not reach the planning service to check your saved draft. It has been kept, so you can describe your trip again if it no longer resumes.'
+            )
+        }
+
+        verify()
 
         return () => {
             cancelled = true
