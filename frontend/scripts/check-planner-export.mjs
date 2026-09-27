@@ -157,5 +157,25 @@ check('no extensionless router.push targets', badPushes.length === 0, badPushes.
 console.log('\n=== API meta tag intact ===')
 check('meta api-base-url present', /<meta name="api-base-url" content="https:\/\/tripbuddy-multiagent-travel-planner\.onrender\.com"/.test(html))
 
+// The sitemap is a static file, so nothing rewrites its URLs for it. An
+// extensionless entry there points crawlers at the route that falls back to
+// the home page.
+console.log('\n=== sitemap advertises canonical URLs ===')
+const sitemap = await readFile(path.join(dist, 'sitemap.xml'), 'utf8')
+const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
+const badLocs = locs.filter((u) => ROUTES.some((r) => new URL(u).pathname === `/${r}`))
+check('no extensionless route in the sitemap', badLocs.length === 0, badLocs.join(', '))
+for (const route of ROUTES) {
+    check(`/sitemap lists /${route}/`, locs.some((u) => new URL(u).pathname === `/${route}/`))
+}
+
+console.log('\n=== extensionless routes redirect ===')
+const redirects = await readFile(path.join(dist, '_redirects'), 'utf8').catch(() => '')
+check('_redirects shipped', redirects.length > 0)
+for (const route of ROUTES) {
+    const rule = new RegExp(`^/${route}\\s+/${route}/\\s+301$`, 'm')
+    check(`/${route} -> /${route}/ 301`, rule.test(redirects))
+}
+
 console.log(`\nRESULT: ${ok ? 'ALL PASS' : 'SOME FAILURES'}`)
 process.exit(ok ? 0 : 1)
