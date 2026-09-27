@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Copy, Download, Loader2, MessageSquareText, Sparkles, X } from 'lucide-react'
-import { marked } from 'marked'
+import { Marked } from 'marked'
 import sanitizeHtml from 'sanitize-html'
 import { useSearchParams } from 'next/navigation'
 import { Seo } from '../components/Seo'
 import { TripPlanningLoader } from '../components/planner/TripPlanningLoader'
 import { submitApproval, submitTravelRequest } from '../services/api'
+
+// marked v5+ changed parse() to be async by default.
+// Use a synchronous Marked instance to keep rendering simple and reliable.
+const markedSync = new Marked({ async: false })
 
 const starterPrompts = [
     'Plan a 7-day Tokyo trip from Bengaluru with mid-range budget and a strong food focus.',
@@ -31,6 +35,7 @@ export function PlannerPage() {
     const [threadId, setThreadId] = useState('')
     const [workflow, setWorkflow] = useState(null)
     const [result, setResult] = useState('')
+    const [renderedHtml, setRenderedHtml] = useState('')
     const [resultTitle, setResultTitle] = useState('Draft Travel Plan')
     const [showApproval, setShowApproval] = useState(false)
     const [approvalRequest, setApprovalRequest] = useState('')
@@ -39,6 +44,22 @@ export function PlannerPage() {
     const [copied, setCopied] = useState(false)
 
     const promptList = useMemo(() => starterPrompts, [])
+
+    // Convert markdown to sanitized HTML whenever result changes.
+    // Must be done in useEffect because marked.parse() is async in marked v5+.
+    useEffect(() => {
+        const text = result || 'Your generated itinerary will appear here.'
+        const raw = markedSync.parse(text)
+        setRenderedHtml(
+            sanitizeHtml(typeof raw === 'string' ? raw : String(raw), {
+                allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'img']),
+                allowedAttributes: {
+                    ...sanitizeHtml.defaults.allowedAttributes,
+                    '*': ['class'],
+                },
+            })
+        )
+    }, [result])
 
     useEffect(() => {
         const savedThreadId = window.localStorage.getItem('travel_thread_id')
@@ -98,7 +119,10 @@ export function PlannerPage() {
                 setShowApproval(false)
             }
         } catch (err) {
-            setError(err.message || 'Something went wrong while contacting the API.')
+            setError(
+                err.message ||
+                'Unable to reach the TripBuddy AI backend. If you are running locally, make sure the FastAPI server is running on http://127.0.0.1:8000.'
+            )
         } finally {
             setIsLoading(false)
         }
@@ -333,9 +357,7 @@ export function PlannerPage() {
                             ) : (
                                 <div
                                     className="prose itinerary-content max-w-none rounded-[22px] border border-[var(--line)] bg-[var(--sand)]/55 p-4 text-sm leading-7 text-[var(--ink-soft)]"
-                                    dangerouslySetInnerHTML={{
-                                        __html: sanitizeHtml(marked.parse(result || 'Your generated itinerary will appear here.')),
-                                    }}
+                                    dangerouslySetInnerHTML={{ __html: renderedHtml }}
                                 />
                             )}
                         </motion.div>
