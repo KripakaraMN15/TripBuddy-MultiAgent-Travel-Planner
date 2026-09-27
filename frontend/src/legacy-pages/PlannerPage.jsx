@@ -126,16 +126,9 @@ export function PlannerPage() {
     useEffect(() => {
         const promptParam = searchParams.get('prompt')
         if (typeof promptParam === 'string' && promptParam.trim()) {
-            const trimmedPrompt = promptParam.trim()
-            setInput(trimmedPrompt)
-
-            const autoSubmit = searchParams.get('autoSubmit') !== 'false'
-            if (autoSubmit && !autoSubmittedRef.current) {
-                autoSubmittedRef.current = true
-                runPlanning(trimmedPrompt)
-            }
+            setInput(promptParam.trim())
         }
-    }, [searchParams, runPlanning])
+    }, [searchParams])
 
     async function handleSubmit(event) {
         event.preventDefault()

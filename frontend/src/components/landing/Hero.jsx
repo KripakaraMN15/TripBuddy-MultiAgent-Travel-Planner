@@ -81,7 +81,7 @@ export function Hero() {
         }
 
         if (prompt) {
-            router.push(`/planner?prompt=${encodeURIComponent(prompt)}&autoSubmit=true`)
+            router.push(`/planner?prompt=${encodeURIComponent(prompt)}`)
         } else {
             router.push('/planner')
         }
