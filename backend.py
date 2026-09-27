@@ -1247,3 +1247,34 @@ def resume_travel_agent(
     )
 
     return _serialize_result(result, thread_id)
+
+
+def thread_state(thread_id: str) -> dict[str, Any]:
+    """Report whether a thread still has a resumable checkpoint.
+
+    The frontend caches a thread id in localStorage so a refresh does not lose a
+    pending draft. That id becomes stale whenever the checkpointer is cleared —
+    a server restart, a spin-down on a free-tier host, or the in-memory store
+    being used at all. The client needs a cheap way to check before offering an
+    Approve button that is guaranteed to fail.
+    """
+    if not thread_id:
+        return {"exists": False, "reason": "missing"}
+
+    try:
+        snapshot = travel_graph.get_state(
+            config={"configurable": {"thread_id": thread_id}}
+        )
+    except Exception as exc:
+        log(f"Thread lookup failed for {thread_id[:18]}: {type(exc).__name__}")
+        return {"exists": False, "reason": "lookup_failed"}
+
+    values = getattr(snapshot, "values", None) or {}
+    has_draft = bool(values.get("itinerary") or values.get("draft_itinerary"))
+
+    return {
+        "exists": has_draft,
+        "reason": "" if has_draft else "no_pending_draft",
+        "thread_id": thread_id,
+        "awaiting_approval": bool(has_draft and not values.get("final_response")),
+    }

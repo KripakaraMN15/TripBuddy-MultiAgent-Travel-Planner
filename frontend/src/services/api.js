@@ -1,5 +1,12 @@
 const LOCAL_API_BASE = 'http://127.0.0.1:8000'
 
+// The static site and the API are separate Render services, so the base URL has
+// to be discovered at runtime. `process.env.NEXT_PUBLIC_*` is inlined into the
+// bundle at build time, so it cannot be corrected without a rebuild; the
+// <meta name="api-base-url"> tag in layout.js is read from the live document
+// instead, and a postbuild step can rewrite it in the exported HTML.
+const DEPLOYED_API_BASE = 'https://tripbuddy-multiagent-travel-planner.onrender.com'
+
 // A full graph run can take a while on a cold start, so the ceiling is generous.
 const DEFAULT_TIMEOUT_MS = 180000
 
@@ -15,14 +22,27 @@ function isLocalhost() {
 }
 
 function getApiBaseUrl() {
-    if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-        return process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')
+    if (typeof window === 'undefined') {
+        return LOCAL_API_BASE
     }
-    // Deployed: the static host and API share an origin.
-    if (typeof window !== 'undefined' && !isLocalhost()) {
-        return window.location.origin.replace(/\/$/, '')
+
+    if (isLocalhost()) {
+        return LOCAL_API_BASE
     }
-    return LOCAL_API_BASE
+
+    const injected = document
+        .querySelector('meta[name="api-base-url"]')
+        ?.content?.trim()
+        ?.replace(/\/$/, '')
+
+    // Never let the API base point at the static site: it serves no
+    // /api/travel and answering with HTML is what made the planner appear to
+    // do nothing. Fall back to the known API service in that case.
+    if (!injected || injected === window.location.origin) {
+        return DEPLOYED_API_BASE
+    }
+
+    return injected
 }
 
 async function fetchJson(url, options, timeoutMs) {
@@ -43,6 +63,18 @@ async function fetchJson(url, options, timeoutMs) {
 
     try {
         const response = await fetch(url, { ...options, signal: controller.signal })
+
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+            // A static host answering with HTML means the request went to the
+            // wrong origin. Surface that instead of returning an empty object,
+            // which used to look like a successful but empty plan.
+            throw new Error(
+                `The TripBuddy API did not return JSON from ${url}. ` +
+                'The frontend is probably pointed at the static site instead of the API service.'
+            )
+        }
+
         const data = await response.json().catch(() => ({}))
         return { response, data }
     } finally {
@@ -148,4 +180,20 @@ export async function submitApproval(threadId, approved, feedback = '', options 
             ...options,
         }
     )
+}
+
+export async function checkThreadState(threadId, options = {}) {
+    // Returns { exists, awaiting_approval } or null if the check itself failed.
+    try {
+        const data = await request(
+            `/api/travel/state?thread_id=${encodeURIComponent(threadId)}`,
+            { method: 'GET', timeoutMs: 20000, ...options }
+        )
+        return {
+            exists: Boolean(data.exists),
+            awaiting_approval: Boolean(data.awaiting_approval),
+        }
+    } catch {
+        return null
+    }
 }

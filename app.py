@@ -27,7 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
-from backend import run_travel_agent, resume_travel_agent
+from backend import run_travel_agent, resume_travel_agent, thread_state
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO").upper(),
@@ -280,6 +280,17 @@ async def approve_travel_plan(request_data: ApprovalRequest, request: Request):
         )
 
     return JSONResponse(content={"success": True, **result})
+
+
+@app.get("/api/travel/state")
+async def travel_plan_state(thread_id: str):
+    """Report whether a cached thread id is still resumable.
+
+    This is deliberately not rate limited: it runs no LLM or MCP work, and the
+    frontend calls it on page load to decide whether a draft survived a
+    refresh. It only reveals whether a caller-supplied id exists.
+    """
+    return JSONResponse(content={"success": True, **thread_state(thread_id)})
 
 
 @app.get("/health")

@@ -7,7 +7,7 @@ import { Marked } from 'marked'
 import sanitizeHtml from 'sanitize-html'
 import { useSearchParams } from 'next/navigation'
 import { TripPlanningLoader } from '../components/planner/TripPlanningLoader'
-import { submitApproval, submitTravelRequest } from '../services/api'
+import { checkThreadState, submitApproval, submitTravelRequest } from '../services/api'
 
 // marked v5+ changed parse() to be async by default.
 // Use a synchronous Marked instance to keep rendering simple and reliable.
@@ -66,10 +66,42 @@ export function PlannerPage() {
     }, [result])
 
     // Restore a thread that is still awaiting review after a page refresh.
+    // The stored id goes stale whenever the backend loses its checkpoints (a
+    // restart, a free-tier spin-down, or the in-memory store), so it has to be
+    // verified before it is trusted. A normal browser keeps the id while
+    // incognito starts empty, which is why only one of the two worked.
     useEffect(() => {
         const savedThreadId = window.localStorage.getItem('travel_thread_id')
-        if (savedThreadId) {
-            setThreadId(savedThreadId)
+        if (!savedThreadId) {
+            return
+        }
+
+        let cancelled = false
+
+        checkThreadState(savedThreadId).then((state) => {
+            if (cancelled) {
+                return
+            }
+
+            if (state?.exists) {
+                setThreadId(savedThreadId)
+                setShowApproval(true)
+                setResultTitle('Draft Travel Plan')
+                setResult(
+                    'A draft from your previous session is still waiting for review. Approve it to generate the final plan, or describe a new trip below.'
+                )
+                setApprovalRequest(
+                    'Approve the draft or provide feedback before the final plan is generated.'
+                )
+                return
+            }
+
+            // Dead id: drop it so the next run starts from a clean slate.
+            window.localStorage.removeItem('travel_thread_id')
+        })
+
+        return () => {
+            cancelled = true
         }
     }, [])
 
@@ -187,7 +219,16 @@ export function PlannerPage() {
             setShowApproval(false)
             setApprovalFeedback('')
         } catch (err) {
-            setError(err.message || 'Could not resume the travel workflow.')
+            // A dead thread id is the most common failure here (the backend lost
+            // its checkpoints). Clear it so the next attempt is not retried
+            // against the same expired id.
+            window.localStorage.removeItem('travel_thread_id')
+            setThreadId('')
+            setShowApproval(false)
+            setError(
+                err.message ||
+                'Could not resume the travel workflow. Please describe your trip again.'
+            )
         } finally {
             setIsLoading(false)
         }
